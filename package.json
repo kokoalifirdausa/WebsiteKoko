@@ -1,0 +1,8 @@
+{
+  "name": "koko-homepage",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Website pribadi dengan komentar sendiri, statistik pengunjung, dan panel admin (tanpa dependensi)",
+  "scripts": { "start": "node server.js", "patch": "node tools/patch-index.js" },
+  "engines": { "node": ">=18" }
+}

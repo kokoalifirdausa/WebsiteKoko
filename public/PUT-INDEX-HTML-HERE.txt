@@ -1,0 +1,1 @@
+Salin index.html dan seluruh isi folder web lama Anda (foto.png, cover/, dll) ke folder ini.

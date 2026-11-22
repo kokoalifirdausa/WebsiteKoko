@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Panel Admin - Koko's Homepage</title>
+<style>
+  :root {
+    --bg: #f8fafc; --card: #ffffff; --text: #334155; --heading: #0f172a;
+    --muted: #64748b; --line: #e2e8f0; --link: #3fa2bd; --danger: #dc2626;
+  }
+  :root[data-theme="dark"] {
+    --bg: #121316; --card: #1a1b1f; --text: #cbd5e1; --heading: #f8fafc;
+    --muted: #94a3b8; --line: #2b2d35; --link: #62c0d8; --danger: #ef4444;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, sans-serif;
+    color: var(--text);
+    line-height: 1.5;
+    min-height: 100vh;
+    background-color: var(--bg);
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(63, 162, 189, 0.10) 0%, transparent 45%),
+      radial-gradient(circle at 85% 90%, rgba(123, 107, 224, 0.08) 0%, transparent 45%);
+    background-attachment: fixed;
+  }
+  header {
+    background: color-mix(in srgb, var(--card) 85%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .nav { max-width: 960px; margin: 0 auto; padding: 0 20px; height: 64px; display: flex; align-items: center; gap: 16px; }
+  .brand { color: var(--muted); text-decoration: none; font-size: .95rem; }
+  .brand:hover { color: var(--link); }
+  .tabs { display: flex; gap: 8px; margin-left: 12px; }
+  .tabs button { background: none; border: 0; font: inherit; color: var(--muted); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 500; }
+  .tabs button.active { background: color-mix(in srgb, var(--link) 15%, transparent); color: var(--link); }
+  .theme-btn { margin-left: auto; background: none; border: 1px solid var(--line); color: var(--text); padding: 6px 12px; border-radius: 8px; cursor: pointer; font: inherit; font-size: .9rem; }
+
+  .wrap { max-width: 960px; margin: 0 auto; padding: 32px 20px 80px; }
+  h1, h2 { color: var(--heading); margin: 0 0 16px; font-weight: 600; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 24px; margin-bottom: 24px; }
+
+  /* Form */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field.full { grid-column: 1 / -1; }
+  label { font-size: .9rem; font-weight: 500; color: var(--heading); }
+  input, select {
+    font: inherit; font-size: .95rem; padding: 10px 12px; border-radius: 8px;
+    border: 1px solid var(--line); background: var(--bg); color: var(--text); width: 100%;
+  }
+  input[type="file"] { padding: 8px; }
+  input:focus, select:focus { outline: 2px solid var(--link); border-color: transparent; }
+
+  .radio-group { display: flex; gap: 16px; margin-top: 4px; }
+  .radio-group label { display: flex; align-items: center; gap: 6px; font-weight: 400; cursor: pointer; }
+  .radio-group input { width: auto; }
+
+  .btn {
+    font: inherit; font-weight: 500; padding: 10px 20px; border-radius: 8px; border: 0;
+    background: var(--link); color: #fff; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn:disabled { opacity: .6; cursor: not-allowed; }
+  .btn.danger { background: var(--danger); padding: 6px 12px; font-size: .85rem; }
+  .btn.ghost { background: transparent; border: 1px solid var(--line); color: var(--text); }
+
+  /* Tabel Daftar Materi */
+  .item-list { display: flex; flex-direction: column; gap: 12px; }
+  .item-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 14px 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg);
+  }
+  .item-info strong { color: var(--heading); display: block; font-size: 1.02rem; }
+  .item-meta { font-size: .85rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+  .badge { background: color-mix(in srgb, var(--link) 15%, transparent); color: var(--link); padding: 2px 8px; border-radius: 999px; font-size: .78rem; font-weight: 500; }
+
+  .msg { padding: 12px 14px; border-radius: 8px; margin-bottom: 16px; font-size: .92rem; }
+  .msg.ok { background: #dcfce7; color: #166534; }
+  .msg.err { background: #fee2e2; color: #991b1b; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+
+<header id="topNav" hidden>
+  <nav class="nav">
+    <a class="brand" href="/">&larr; Koko's Homepage</a>
+    <div class="tabs">
+      <button type="button" class="active" data-tab="materi">Kelola Materi &amp; Buku</button>
+      <button type="button" data-tab="pengaturan">Pengaturan</button>
+    </div>
+    <button type="button" class="theme-btn" id="themeBtn">Tema</button>
+  </nav>
+</header>
+
+<div class="wrap">
+  <!-- Login Box -->
+  <div id="loginView" class="card" style="max-width: 400px; margin: 60px auto;" hidden>
+    <h2>Masuk Panel Admin</h2>
+    <div id="loginMsg" class="msg err" hidden></div>
+    <form id="loginForm">
+      <div class="field" style="margin-bottom: 16px;">
+        <label for="pwInput">Password Admin</label>
+        <input type="password" id="pwInput" required autofocus>
+      </div>
+      <button type="submit" class="btn" style="width: 100%; justify-content: center;">Masuk</button>
+    </form>
+  </div>
+
+  <!-- Dashboard Utama -->
+  <div id="appView" hidden>
+    <!-- TAB 1: KELOLA MATERI -->
+    <section id="tab-materi">
+      <div class="card">
+        <h2>Tambah / Upload Buku &amp; Materi</h2>
+        <div id="formMsg" class="msg" hidden></div>
+        <form id="uploadForm" class="grid">
+          <div class="field">
+            <label for="sectionSel">Halaman Tujuan</label>
+            <select id="sectionSel">
+              <option value="olimpiade">Olimpiade</option>
+              <option value="kuliah">Kuliah</option>
+            </select>
+          </div>
+
+          <!-- Opsi Khusus Olimpiade -->
+          <div class="field" id="olimTopicField">
+            <label for="topicSel">Topik Olimpiade</label>
+            <select id="topicSel">
+              <option value="teobil">Teori Bilangan</option>
+              <option value="aljabar">Aljabar</option>
+              <option value="geo">Geometri</option>
+              <option value="kombin">Kombinatorika</option>
+              <option value="problem-solving">Problem Solving</option>
+            </select>
+          </div>
+
+          <!-- Opsi Khusus Kuliah -->
+          <div class="field" id="kuliahSemField" hidden>
+            <label for="semSel">Semester</label>
+            <select id="semSel">
+              <option value="1">Semester 1</option>
+              <option value="2">Semester 2</option>
+              <option value="3">Semester 3</option>
+              <option value="4">Semester 4</option>
+              <option value="luar">Di luar jurusan</option>
+            </select>
+          </div>
+
+          <div class="field" id="kuliahJenisField" hidden>
+            <label for="jenisSel">Jenis File</label>
+            <select id="jenisSel">
+              <option value="buku">Buku</option>
+              <option value="ppt">PPT</option>
+              <option value="soal">Soal Ujian</option>
+              <option value="exercise">Exercise</option>
+            </select>
+          </div>
+
+          <div class="field" id="kuliahSubjectField" hidden>
+            <label for="subjectInput">Nama Mata Kuliah</label>
+            <input type="text" id="subjectInput" placeholder="Contoh: Kalkulus 1">
+          </div>
+
+          <div class="field">
+            <label for="titleInput">Judul Buku / Materi *</label>
+            <input type="text" id="titleInput" required placeholder="Contoh: 104 Number Theory Problems">
+          </div>
+
+          <div class="field">
+            <label for="authorInput">Penulis / Dosen</label>
+            <input type="text" id="authorInput" placeholder="Contoh: Titu Andreescu">
+          </div>
+
+          <div class="field">
+            <label for="badgeInput">Singkatan Sampul (Jika tanpa gambar)</label>
+            <input type="text" id="badgeInput" maxlength="10" placeholder="Contoh: EGMO / 104">
+          </div>
+
+          <div class="field">
+            <label for="coverFile">Gambar Sampul (Opsional, JPG/PNG)</label>
+            <input type="file" id="coverFile" accept="image/jpeg,image/png,image/webp">
+          </div>
+
+          <div class="field full">
+            <label>Sumber Dokumen *</label>
+            <div class="radio-group">
+              <label><input type="radio" name="srcMode" value="upload" checked> Upload File (PDF / PPT / ZIP)</label>
+              <label><input type="radio" name="srcMode" value="link"> Link Google Drive / URL</label>
+            </div>
+          </div>
+
+          <div class="field full" id="docFileField">
+            <label for="docFile">Pilih Berkas (Maks. 25 MB)</label>
+            <input type="file" id="docFile" accept=".pdf,.ppt,.pptx,.zip">
+          </div>
+
+          <div class="field full" id="docLinkField" hidden>
+            <label for="externalUrl">Tautan Google Drive / URL</label>
+            <input type="url" id="externalUrl" placeholder="https://drive.google.com/file/d/...">
+          </div>
+
+          <div class="field full">
+            <button type="submit" class="btn" id="submitBtn">Simpan &amp; Terbitkan ke Website</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Daftar Materi Terunggah (<span id="itemCount">0</span>)</h2>
+        <div id="itemsList" class="item-list"></div>
+      </div>
+    </section>
+
+    <!-- TAB 2: PENGATURAN -->
+    <section id="tab-pengaturan" hidden>
+      <div class="card" style="max-width: 480px;">
+        <h2>Ganti Password Admin</h2>
+        <div id="pwMsg" class="msg" hidden></div>
+        <form id="pwForm" style="display: flex; flex-direction: column; gap: 14px;">
+          <div class="field">
+            <label>Password Saat Ini</label>
+            <input type="password" id="curPw" required>
+          </div>
+          <div class="field">
+            <label>Password Baru (Minimal 8 karakter)</label>
+            <input type="password" id="newPw" minlength="8" required>
+          </div>
+          <div>
+            <button type="submit" class="btn">Perbarui Password</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card" style="max-width: 480px;">
+        <h2>Sesi</h2>
+        <button type="button" class="btn danger" id="logoutBtn">Keluar dari Panel Admin</button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+  const api = (url, opts = {}) => fetch(url, {
+    ...opts,
+    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'fetch', ...(opts.headers || {}) }
+  }).then(async r => {
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.error || 'Terjadi kesalahan');
+    return data;
+  });
+
+  const fileToBase64 = file => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+  // Cek status login
+  async function init() {
+    try {
+      await api('/api/admin/me');
+      document.getElementById('loginView').hidden = true;
+      document.getElementById('topNav').hidden = false;
+      document.getElementById('appView').hidden = false;
+      loadItems();
+    } catch {
+      document.getElementById('loginView').hidden = false;
+      document.getElementById('topNav').hidden = true;
+      document.getElementById('appView').hidden = true;
+    }
+  }
+
+  // Login
+  document.getElementById('loginForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const msg = document.getElementById('loginMsg');
+    msg.hidden = true;
+    try {
+      await api('/api/admin/login', { method: 'POST', body: JSON.stringify({ password: document.getElementById('pwInput').value }) });
+      init();
+    } catch (err) {
+      msg.textContent = err.message;
+      msg.hidden = false;
+    }
+  });
+
+  // Logout
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await api('/api/admin/logout', { method: 'POST' });
+    location.reload();
+  });
+
+  // Navigasi Tab
+  document.querySelectorAll('.tabs button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-materi').hidden = btn.dataset.tab !== 'materi';
+      document.getElementById('tab-pengaturan').hidden = btn.dataset.tab !== 'pengaturan';
+    });
+  });
+
+  // Toggle field Olimpiade vs Kuliah
+  const sectionSel = document.getElementById('sectionSel');
+  sectionSel.addEventListener('change', () => {
+    const isKuliah = sectionSel.value === 'kuliah';
+    document.getElementById('olimTopicField').hidden = isKuliah;
+    document.getElementById('kuliahSemField').hidden = !isKuliah;
+    document.getElementById('kuliahJenisField').hidden = !isKuliah;
+    document.getElementById('kuliahSubjectField').hidden = !isKuliah;
+  });
+
+  // Toggle Upload File vs Link Drive
+  document.querySelectorAll('input[name="srcMode"]').forEach(r => {
+    r.addEventListener('change', () => {
+      const isUpload = r.value === 'upload';
+      document.getElementById('docFileField').hidden = !isUpload;
+      document.getElementById('docLinkField').hidden = isUpload;
+    });
+  });
+
+  // Submit Form Upload
+  document.getElementById('uploadForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    const msg = document.getElementById('formMsg');
+    msg.hidden = true;
+    btn.disabled = true;
+    btn.textContent = 'Mengunggah...';
+
+    try {
+      const mode = document.querySelector('input[name="srcMode"]:checked').value;
+      const docInput = document.getElementById('docFile');
+      const coverInput = document.getElementById('coverFile');
+
+      const payload = {
+        section: sectionSel.value,
+        topic: document.getElementById('topicSel').value,
+        sem: document.getElementById('semSel').value,
+        jenis: document.getElementById('jenisSel').value,
+        subject: document.getElementById('subjectInput').value,
+        title: document.getElementById('titleInput').value,
+        author: document.getElementById('authorInput').value,
+        badge: document.getElementById('badgeInput').value,
+        externalUrl: mode === 'link' ? document.getElementById('externalUrl').value : '',
+        fileData: (mode === 'upload' && docInput.files[0]) ? await fileToBase64(docInput.files[0]) : '',
+        coverData: coverInput.files[0] ? await fileToBase64(coverInput.files[0]) : ''
+      };
+
+      await api('/api/admin/items', { method: 'POST', body: JSON.stringify(payload) });
+      e.target.reset();
+      sectionSel.dispatchEvent(new Event('change'));
+      document.querySelector('input[name="srcMode"][value="upload"]').dispatchEvent(new Event('change'));
+
+      msg.className = 'msg ok';
+      msg.textContent = 'Materi berhasil disimpan dan langsung tampil di website!';
+      msg.hidden = false;
+      loadItems();
+    } catch (err) {
+      msg.className = 'msg err';
+      msg.textContent = err.message;
+      msg.hidden = false;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Simpan & Terbitkan ke Website';
+    }
+  });
+
+  // Muat daftar materi
+  const topicLabels = { teobil: 'Teori Bilangan', aljabar: 'Aljabar', geo: 'Geometri', kombin: 'Kombinatorika', 'problem-solving': 'Problem Solving' };
+  async function loadItems() {
+    const { items } = await api('/api/admin/items');
+    document.getElementById('itemCount').textContent = items.length;
+    const list = document.getElementById('itemsList');
+    if (!items.length) {
+      list.innerHTML = '<p style="color: var(--muted); margin: 0;">Belum ada materi yang diunggah lewat panel admin.</p>';
+      return;
+    }
+    list.innerHTML = items.map(it => {
+      const tag = it.section === 'olimpiade'
+        ? `Olimpiade &bull; ${topicLabels[it.topic] || it.topic}`
+        : `Kuliah &bull; Semester ${it.sem} &bull; ${it.jenis.toUpperCase()}`;
+      return `
+        <div class="item-row">
+          <div class="item-info">
+            <strong>${esc(it.title)}</strong>
+            <div class="item-meta">
+              <span class="badge">${tag}</span>
+              ${it.author ? `<span>Oleh: ${esc(it.author)}</span>` : ''}
+              <a href="${esc(it.fileUrl)}" target="_blank" style="color: var(--link);">Buka File &nearr;</a>
+            </div>
+          </div>
+          <button type="button" class="btn danger" onclick="delItem(${it.id})">Hapus</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  window.delItem = async id => {
+    if (!confirm('Hapus materi ini beserta berkas yang diunggah?')) return;
+    await api('/api/admin/items/' + id, { method: 'DELETE' });
+    loadItems();
+  };
+
+  // Ganti password
+  document.getElementById('pwForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const msg = document.getElementById('pwMsg');
+    msg.hidden = true;
+    try {
+      await api('/api/admin/password', {
+        method: 'POST',
+        body: JSON.stringify({ current: document.getElementById('curPw').value, next: document.getElementById('newPw').value })
+      });
+      e.target.reset();
+      msg.className = 'msg ok';
+      msg.textContent = 'Password admin berhasil diperbarui.';
+      msg.hidden = false;
+    } catch (err) {
+      msg.className = 'msg err';
+      msg.textContent = err.message;
+      msg.hidden = false;
+    }
+  });
+
+  const esc = s => String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  // Tema terang/gelap
+  const root = document.documentElement;
+  root.dataset.theme = localStorage.getItem('theme') || 'light';
+  document.getElementById('themeBtn').addEventListener('click', () => {
+    const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+    root.dataset.theme = next;
+    localStorage.setItem('theme', next);
+  });
+
+  init();
+</script>
+</body>
+</html>

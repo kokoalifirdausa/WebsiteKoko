@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Koko Ali Firdaus A - Matematika &amp; Olimpiade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f8fb;
+    --text: #4a4a4f; --heading: #2d2d32; --muted: #6d6d73;
+    --line: #e2e8f0; --link: #3fa2bd; --photo-bg: #c70f0f; --field: #ffffff;
+    --dot-color: rgba(63, 162, 189, 0.14);
+  }
+  :root[data-theme="dark"] {
+    --bg: #121316;
+    --text: #c9c9ce; --heading: #ececef; --muted: #9a9aa2;
+    --line: #27282e; --link: #62c0d8; --field: #1b1c21;
+    --dot-color: rgba(255, 255, 255, 0.07);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    color: var(--text);
+    font-family: "Roboto", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 18px; line-height: 1.65;
+    min-height: 100vh;
+    background-color: var(--bg);
+    background-image:
+      radial-gradient(circle at 12% 10%, rgba(63, 162, 189, 0.12) 0%, transparent 42%),
+      radial-gradient(circle at 88% 85%, rgba(123, 107, 224, 0.10) 0%, transparent 45%),
+      radial-gradient(var(--dot-color) 1.2px, transparent 1.2px);
+    background-size: 100% 100%, 100% 100%, 26px 26px;
+    background-position: 0 0, 0 0, var(--px, 0px) var(--py, 0px);
+    background-attachment: fixed;
+  }
+  a { color: var(--link); }
+
+  /* ---------- Navbar ---------- */
+  header {
+    border-bottom: 1px solid var(--line);
+    position: sticky;
+    top: 0;
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 10;
+  }
+  .nav { max-width: 1040px; margin: 0 auto; padding: 0 24px; height: 70px; display: flex; align-items: center; gap: 24px; }
+  .brand { font-weight: 500; font-size: 1.15rem; color: var(--muted); text-decoration: none; white-space: nowrap; }
+  .menu { display: flex; gap: 6px; margin: 0 auto; }
+  .menu button { background: none; border: 0; font: inherit; color: var(--muted); padding: 8px 14px; cursor: pointer; border-radius: 6px; }
+  .menu button:hover { color: var(--heading); }
+  .menu button[aria-current="page"] { color: var(--heading); font-weight: 500; }
+  button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+  .theme { background: none; border: 0; cursor: pointer; color: var(--muted); width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; }
+  .theme svg { width: 24px; height: 24px; fill: currentColor; }
+
+  /* ---------- Layout ---------- */
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 48px 24px 80px; display: grid; grid-template-columns: 230px 1fr; gap: 28px; }
+  aside { font-size: .95rem; }
+  .photo { width: 100%; aspect-ratio: 1 / 1.4; border-radius: 50%; background: var(--photo-bg); overflow: hidden; border: 6px solid var(--bg); outline: 1px solid var(--line); }
+  .photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  aside h1 { font-size: 1.35rem; font-weight: 500; color: var(--heading); margin: 22px 0 6px; line-height: 1.3; }
+  .bio { color: var(--muted); margin: 0 0 18px; line-height: 1.5; }
+  .meta { list-style: none; padding: 0; margin: 0 0 20px; }
+  .meta li { display: flex; gap: 10px; align-items: center; padding: 5px 0; color: var(--muted); }
+  .meta a { color: var(--muted); text-decoration: none; }
+  .meta a:hover { color: var(--link); }
+  .meta svg { width: 18px; height: 18px; fill: currentColor; flex: none; }
+
+  /* Kotak komentar */
+  .comment { margin-top: 64px; padding-top: 32px; border-top: 1px solid var(--line); max-width: 760px; }
+  .comment h3 { font-size: 1.5rem; font-weight: 500; color: var(--heading); margin: 0 0 18px; }
+  #disqus_thread .note { color: var(--muted); font-size: .95rem; margin: 0; }
+  .wrap.home .comment { display: none; }  /* komentar tidak tampil di Beranda */
+
+  /* Konten */
+  main h2 { font-size: 2.4rem; font-weight: 500; color: var(--heading); margin: 0 0 14px; line-height: 1.2; }
+  main section.block + section.block { margin-top: 56px; }
+  main p { margin: 0 0 18px; max-width: 70ch; }
+  .topics { margin: 0 0 18px; padding-left: 1.3em; }
+  .topics li { padding: 4px 0; font-size: 1.15rem; }
+  .back { display: inline-block; margin-bottom: 22px; font-size: .95rem; color: var(--muted); text-decoration: none; }
+  .back:hover { color: var(--link); }
+  .page[hidden] { display: none; }
+
+  /* ---------- Beranda ---------- */
+  .hero { padding: 4px 0 8px; position: relative; }
+  .hero > *:not(.floaters) { position: relative; z-index: 1; }
+  .eyebrow { display: inline-block; font-size: .82rem; font-weight: 500; letter-spacing: .02em; color: var(--link);
+    background: color-mix(in srgb, var(--link) 12%, transparent); border-radius: 999px; padding: 6px 14px; margin-bottom: 18px; }
+  .hero-title { font-size: clamp(2rem, 4.4vw, 3.2rem); line-height: 1.14; font-weight: 500; margin: 0 0 16px; color: var(--heading); }
+  .hero-title span { background: linear-gradient(90deg, #3fa2bd, #7b6be0, #c70f0f); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero-sub { font-size: 1.1rem; color: var(--muted); max-width: 56ch; margin: 0 0 26px; }
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 40px; }
+  .btn { display: inline-block; padding: 12px 24px; border-radius: 999px; font: inherit; font-weight: 500; font-size: 1rem; text-decoration: none; cursor: pointer; border: 1px solid transparent; transition: transform .15s ease, box-shadow .15s ease; }
+  .btn:hover { transform: translateY(-2px); }
+  .btn.primary { background: linear-gradient(90deg, #3fa2bd, #7b6be0); color: #fff; box-shadow: 0 6px 18px rgba(63,162,189,.35); }
+  .btn.ghost { color: var(--heading); border-color: var(--line); background: transparent; }
+  .section-label { font-size: .82rem; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 14px; }
+  .cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 40px; }
+  .card { display: block; text-decoration: none; color: var(--text); border: 1px solid var(--line); border-radius: 16px; padding: 20px; background: var(--bg); transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+  .card:hover { transform: translateY(-4px); border-color: var(--link); box-shadow: 0 12px 28px rgba(20,40,60,.12); }
+  .card .ico { font-size: 1.8rem; line-height: 1; margin-bottom: 10px; display: block; }
+  .card strong { display: block; font-size: 1.15rem; font-weight: 500; color: var(--heading); margin-bottom: 4px; }
+  .card .d { font-size: .95rem; color: var(--muted); line-height: 1.5; display: block; }
+  .warmup { border: 1px solid var(--line); border-radius: 18px; padding: 24px; background: var(--field); }
+  .warmup .top { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; color: var(--heading); }
+  .warmup .wtag { font-size: .85rem; color: var(--link); text-decoration: none; border: 1px solid var(--link); border-radius: 999px; padding: 3px 12px; }
+  .warmup .q { font-size: 1.3rem; color: var(--heading); margin: 0 0 18px; max-width: none; }
+  .warmup .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .warmup input { font: inherit; padding: 10px 14px; width: 150px; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; }
+  .warmup .btn { padding: 10px 20px; font-size: .95rem; }
+  .warmup #wuMsg { margin: 14px 0 0; min-height: 1.6em; font-weight: 500; }
+  .warmup #wuSol { margin: 8px 0 0; color: var(--muted); }
+  .page { animation: fadeUp .35s ease; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .page { animation: none; } }
+
+  /* ---------- Hero hidup + pencarian ---------- */
+  .floaters { position: absolute; inset: -30px -10px 0; overflow: hidden; pointer-events: none; z-index: 0; }
+  .floaters span {
+    position: absolute; bottom: -40px; left: var(--x);
+    font-size: var(--s); color: var(--link); opacity: 0;
+    animation: floatUp var(--d) linear var(--delay) infinite;
+  }
+  @keyframes floatUp {
+    0%   { transform: translateY(0) rotate(0); opacity: 0; }
+    10%  { opacity: .18; }
+    90%  { opacity: .18; }
+    100% { transform: translateY(-520px) rotate(40deg); opacity: 0; }
+  }
+
+  .typing { font-size: 1.15rem; color: var(--muted); margin: 0 0 18px; min-height: 1.7em; }
+  .typing b { color: var(--link); font-weight: 500; }
+  .caret { display: inline-block; width: 2px; height: 1.1em; background: var(--link); margin-left: 2px; vertical-align: text-bottom; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .search { position: relative; max-width: 520px; margin: 0 0 26px; z-index: 5 !important; }
+  .search input {
+    width: 100%; font: inherit; padding: 13px 20px; color: var(--text);
+    background: var(--field); border: 1px solid var(--line); border-radius: 999px;
+  }
+  .results {
+    position: absolute; left: 0; right: 0; top: calc(100% + 8px); list-style: none; margin: 0; padding: 6px;
+    background: var(--field); border: 1px solid var(--line); border-radius: 16px;
+    box-shadow: 0 12px 28px rgba(20,40,60,.15); max-height: 340px; overflow-y: auto;
+  }
+  .results[hidden] { display: none; }
+  .results a { display: block; padding: 10px 14px; border-radius: 10px; text-decoration: none; color: var(--text); }
+  .results a:hover, .results a:focus-visible { background: var(--line); }
+  .results .r-title { display: block; color: var(--heading); font-weight: 500; font-size: 1rem; }
+  .results .r-sub { display: block; color: var(--muted); font-size: .85rem; }
+  .results .r-none { padding: 12px 14px; color: var(--muted); }
+
+  @media (prefers-reduced-motion: reduce) { .floaters { display: none; } .caret { animation: none; } }
+
+  /* ---------- Soal pemanasan + Terbaru ---------- */
+  .warmup { margin-bottom: 40px; }
+  .warmup .wtag { cursor: default; }
+  .warmup #wuMsg.ok { color: #2e9e5b; }
+  .warmup #wuMsg.bad { color: #d1453b; }
+  .recent { grid-template-columns: repeat(3, 1fr); }
+  .recent .card { padding: 16px; }
+  .recent .card strong { font-size: 1.02rem; line-height: 1.35; }
+  @media (max-width: 800px) { .recent { grid-template-columns: 1fr; } }
+
+  /* ---------- Kartu buku ---------- */
+  .books { list-style: none; padding: 0; margin: 8px 0 18px; display: grid; gap: 20px;
+           grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
+  .book-card { display: flex; flex-direction: column; background: var(--field);
+               border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+               transition: transform .15s, box-shadow .15s; }
+  .book-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,.12); }
+  .book-cover { position: relative; aspect-ratio: 3 / 4; display: grid; place-items: center;
+                background: linear-gradient(135deg, #3fa2bd, #2b6f8a); color: #fff;
+                font-size: 2.2rem; font-weight: 500; text-align: center; padding: 10px; }
+  .book-cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .book-body { display: flex; flex-direction: column; flex: 1; padding: 14px 16px 16px; }
+  .book-card .book-title { font-size: 1.05rem; font-weight: 500; color: var(--heading); line-height: 1.35; }
+  .book-card .book-author { color: var(--muted); font-size: .88rem; margin: 4px 0 14px; line-height: 1.4; }
+  .btn-book { margin-top: auto; text-align: center; text-decoration: none; font-size: .9rem;
+              padding: 8px 12px; border-radius: 8px; background: var(--link); color: #fff; }
+  .btn-book:hover { opacity: .88; }
+  :root[data-theme="dark"] .btn-book { color: #17181b; }
+
+  /* ---------- Kuliah: filter + daftar file ---------- */
+  .filters { display: grid; gap: 10px; margin: 6px 0 18px; }
+  .frow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .flabel { width: 74px; font-size: .85rem; color: var(--muted); }
+  .chip { font: inherit; font-size: .9rem; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line);
+          background: transparent; color: var(--text); cursor: pointer; transition: background .15s, color .15s, border-color .15s; }
+  .chip:hover { border-color: var(--link); }
+  .chip[aria-pressed="true"] { background: var(--link); border-color: var(--link); color: #fff; }
+  :root[data-theme="dark"] .chip[aria-pressed="true"] { color: #17181b; }
+  .count { font-size: .9rem; color: var(--muted); margin: 0 0 14px; }
+  .files { list-style: none; padding: 0; margin: 0 0 18px; display: grid; gap: 16px;
+           grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+  .file-card { display: flex; flex-direction: column; gap: 4px; padding: 16px; background: var(--field);
+               border: 1px solid var(--line); border-radius: 12px; transition: transform .15s, box-shadow .15s; }
+  .file-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,.12); }
+  .file-card[hidden] { display: none; }
+  .file-labels { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .file-labels span { font-size: .75rem; line-height: 1.6; padding: 1px 10px; border-radius: 999px; }
+  .lbl-sem { border: 1px solid var(--link); color: var(--link); }
+  .lbl-jenis { background: var(--line); color: var(--heading); }
+  .file-title { font-size: 1.05rem; font-weight: 500; color: var(--heading); line-height: 1.35; }
+  .file-sub { font-size: .88rem; color: var(--muted); margin-bottom: 12px; }
+  .file-card .btn-book { margin-top: auto; }
+  /* Sampul dan penulis (opsional) */
+  .file-card { overflow: hidden; }
+  .file-cover { position: relative; aspect-ratio: 3 / 4; display: grid; place-items: center;
+                margin: -16px -16px 14px; padding: 10px; text-align: center;
+                background: linear-gradient(135deg, #3fa2bd, #2b6f8a); color: #fff;
+                font-size: 2rem; font-weight: 500; }
+  .file-cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .file-author { font-size: .88rem; color: var(--muted); line-height: 1.4; margin-bottom: 2px; }
+  .empty { color: var(--muted); }
+
+  /* ---------- CV ---------- */
+  .cv-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .cv-head h2 { margin-bottom: 4px; }
+  .cv-role { color: var(--muted); margin: 0 0 12px; }
+  .cv-print { font: inherit; font-size: .95rem; padding: 9px 18px; border: 0; border-radius: 8px; cursor: pointer; background: var(--link); color: #fff; }
+  .cv-print:hover { opacity: .88; }
+  :root[data-theme="dark"] .cv-print { color: #17181b; }
+  .cv-contact { list-style: none; padding: 0 0 18px; margin: 0 0 8px; display: flex; flex-wrap: wrap; gap: 4px 22px; font-size: .95rem; color: var(--muted); border-bottom: 1px solid var(--line); }
+  .cv-contact a { color: var(--muted); }
+  .cv-contact a:hover { color: var(--link); }
+  .cv-sec { font-size: 1.15rem; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--link); margin: 32px 0 14px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+  .cv-item { display: grid; grid-template-columns: 150px 1fr; gap: 6px 20px; margin-bottom: 18px; }
+  .cv-date { font-size: .92rem; color: var(--muted); padding-top: 3px; }
+  .cv-body strong { display: block; color: var(--heading); font-weight: 500; font-size: 1.08rem; }
+  .cv-sub { display: block; color: var(--muted); font-size: .95rem; margin-bottom: 4px; }
+  .cv-body p { margin: 4px 0 0; font-size: .98rem; }
+  .cv-skills { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+  .cv-skills li { font-size: .92rem; padding: 4px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--field); }
+
+  /* Cetak / simpan PDF: hanya isi halaman, warna terang */
+  @media print {
+    :root, :root[data-theme="dark"] { --bg: #fff; --text: #222; --heading: #000; --muted: #555; --line: #ccc; --link: #1a6f86; --field: #fff; }
+    header, aside, .comment, .cv-print, body::before { display: none !important; }
+    body { font-size: 11.5pt; line-height: 1.5; }
+    .wrap { display: block; margin: 0; padding: 0; max-width: none; }
+    .page { animation: none; }
+    main h2 { font-size: 24pt; }
+    a { color: inherit; text-decoration: none; }
+    .cv-item { break-inside: avoid; }
+    .cv-sec { break-after: avoid; }
+  }
+  @media (max-width: 600px) { .cv-item { grid-template-columns: 1fr; } }
+
+  /* ---------- Mobile ---------- */
+  @media (max-width: 800px) {
+    body { font-size: 16.5px; }
+    .nav { flex-wrap: wrap; height: auto; padding: 10px 16px; gap: 4px 12px; }
+    .menu { order: 3; width: 100%; overflow-x: auto; margin: 0; }
+    .theme { margin-left: auto; }
+    .wrap { grid-template-columns: 1fr; padding: 28px 16px 60px; }
+    aside { display: grid; grid-template-columns: 110px 1fr; gap: 0 18px; align-items: center; }
+    .photo { grid-row: span 2; }
+    aside h1 { margin-top: 0; }
+    .meta { grid-column: 1 / -1; }
+    .meta { margin-top: 14px; }
+    main h2 { font-size: 2rem; }
+  }
+  @media (max-width: 520px) { .cards { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header>
+  <nav class="nav" aria-label="Navigasi utama">
+    <a class="brand" href="#beranda" data-page="beranda">Koko's Homepage</a>
+    <div class="menu">
+      <button data-page="beranda" aria-current="page">Beranda</button>
+      <button data-page="Olimpiade">Olimpiade</button>
+      <button data-page="kuliah">Kuliah</button>
+      <button data-page="proyek">Proyek</button>
+      <button data-page="cv">CV</button>
+    </div>
+    <button class="theme" id="themeBtn" aria-label="Ganti tema terang/gelap">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zm9.4 5.5v-3l-2.6-.9a7.7 7.7 0 00-.8-1.9l1.2-2.5-2.1-2.1-2.5 1.2a7.7 7.7 0 00-1.9-.8L12.8 2h-3l-.9 2.6c-.7.2-1.3.5-1.9.8L4.5 4.2 2.4 6.3l1.2 2.5c-.3.6-.6 1.2-.8 1.9L.2 11.5v3l2.6.9c.2.7.5 1.3.8 1.9l-1.2 2.5 2.1 2.1 2.5-1.2c.6.3 1.2.6 1.9.8l.9 2.6h3l.9-2.6c.7-.2 1.3-.5 1.9-.8l2.5 1.2 2.1-2.1-1.2-2.5c.3-.6.6-1.2.8-1.9l2.6-.9z"/></svg>
+    </button>
+  </nav>
+</header>
+
+<div class="wrap home">
+  <!-- ============ SIDEBAR (tampil di semua halaman, termasuk Beranda) ============ -->
+  <aside>
+    <div class="photo">
+      <!-- Ganti dengan foto Anda: taruh foto.jpg di folder yang sama -->
+      <img src="foto.png" alt="Foto Koko Ali Firdaus A" onerror="this.style.display='none'">
+    </div>
+    <div>
+      <h1>Koko Ali Firdaus A</h1>
+      <p class="bio">Mathematics undergraduate and olympiad coach</p>
+    </div>
+
+    <ul class="meta">
+      <li>
+        <svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 00-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 00-7-7zm0 9.5A2.5 2.5 0 119.5 9 2.5 2.5 0 0112 11.5z"/></svg>
+        East Java, Indonesia
+      </li>
+      <li>
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7v2h20V7L12 2zM4 11v7h3v-7H4zm6.5 0v7h3v-7h-3zM17 11v7h3v-7h-3zM2 20v2h20v-2H2z"/></svg>
+        Universitas Negeri Malang
+      </li>
+
+      <li>
+        <svg viewBox="0 0 24 24"><path d="M2 5v14h20V5H2zm10 8L4 7h16l-8 6z"/></svg>
+        <a href="mailto:kokoalifirdausa@gmail.com">Email</a>
+      </li>
+      <li>
+        <svg viewBox="0 0 24 24"><path d="M12 .5a11.5 11.5 0 00-3.64 22.42c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 015.78 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.69 5.39-5.25 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0012 .5z"/></svg>
+        <a href="https://github.com/kokoalifirdausa" target="_blank" rel="noopener">Github</a>
+      </li>
+      <li>
+        <svg viewBox="0 0 24 24"><path d="M14 8V6c0-.9.2-1.5 1.6-1.5H17V1.1C16.7 1 15.8 1 14.8 1 12.5 1 11 2.4 11 5v3H8v3.5h3V23h3.5V11.5h2.8L17.8 8H14z"/></svg>
+        <a href="https://facebook.com/Koko Ali Firdaus Alfaridzi" target="_blank" rel="noopener">Facebook</a>
+      </li>
+      <li>
+        <svg viewBox="0 0 24 24"><path d="M7 2h10a5 5 0 015 5v10a5 5 0 01-5 5H7a5 5 0 01-5-5V7a5 5 0 015-5zm0 2a3 3 0 00-3 3v10a3 3 0 003 3h10a3 3 0 003-3V7a3 3 0 00-3-3H7zm5 3.5a4.5 4.5 0 110 9 4.5 4.5 0 010-9zm0 2a2.5 2.5 0 100 5 2.5 2.5 0 000-5zm5-3.9a1.1 1.1 0 110 2.2 1.1 1.1 0 010-2.2z"/></svg>
+        <a href="https://instagram.com/kok_alifa365" target="_blank" rel="noopener">Instagram</a>
+      </li>
+      <li>
+        <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        <a href="https://wa.me/6285850713892" target="_blank" rel="noopener">WhatsApp</a>
+      </li>
+    </ul>
+  </aside>
+
+  <!-- ============ KONTEN ============ -->
+  <main>
+    <!-- Halaman 0: Beranda (tampilan pertama) -->
+    <div class="page" id="beranda">
+      <section class="hero">
+        <div class="floaters" id="floaters" aria-hidden="true"></div>
+        <span class="eyebrow">Mathematics undergraduate &amp; olympiad coach</span>
+        <h1 class="hero-title">Jelajahi <span>keindahan matematika</span>, satu soal pada satu waktu.</h1>
+        <p class="typing">Sekarang membahas: <b id="typed"></b><span class="caret" aria-hidden="true"></span></p>
+        <p class="hero-sub">Buku olimpiade, arsip kuliah, dan proyek &mdash; semuanya ada di sini.</p>
+
+        <div class="search">
+          <input id="q" type="search" placeholder="Cari buku atau soal… (mis. geometri, polya)" autocomplete="off" aria-label="Cari materi">
+          <ul class="results" id="results" hidden></ul>
+        </div>
+
+        <div class="cta">
+          <a class="btn primary" href="#Olimpiade" data-page="Olimpiade">Mulai Jelajahi Buku</a>
+          <a class="btn ghost" href="#proyek" data-page="proyek">Lihat Proyek</a>
+        </div>
+      </section>
+
+      <p class="section-label">Soal pemanasan</p>
+      <div class="warmup" id="warmup">
+        <div class="top"><strong>Soal Pemanasan</strong><span class="wtag" id="wuTag"></span></div>
+        <p class="q" id="wuQ"></p>
+        <div class="row">
+          <input id="wuIn" type="text" inputmode="decimal" placeholder="Jawabanmu" autocomplete="off" aria-label="Jawaban">
+          <button class="btn primary" id="wuCheck" type="button">Cek</button>
+          <button class="btn ghost" id="wuShow" type="button">Lihat pembahasan</button>
+          <button class="btn ghost" id="wuNext" type="button">Soal lain</button>
+        </div>
+        <p id="wuMsg" role="status"></p>
+        <p id="wuSol" hidden></p>
+      </div>
+
+      <section id="recentBox" hidden>
+        <p class="section-label">Terbaru</p>
+        <div class="cards recent" id="recent"></div>
+      </section>
+    </div>
+
+    <!-- Halaman 1: Olimpiade -->
+    <div class="page" id="Olimpiade" hidden>
+      <section class="block">
+        <h2>Buku Buku</h2>
+        <ul class="topics">
+          <li><a href="#teobil" data-page="teobil">Teori Bilangan</a></li>
+          <li><a href="#aljabar" data-page="aljabar">Aljabar</a></li>
+          <li><a href="#geo" data-page="geo">Geometri</a></li>
+          <li><a href="#kombin" data-page="kombin">Kombinatorika</a></li>
+          <li><a href="#problem-solving" data-page="problem-solving">Problem Solving</a></li>
+        </ul>
+      </section>
+      <section class="block">
+        <h2>Soal Soal Lomba</h2>
+        <p>Tulis kumpulan soal lomba atau tautan arsipnya di sini.</p>
+      </section>
+    </div>
+
+    <!-- Halaman: Teori Bilangan -->
+    <div class="page" id="teobil" hidden>
+      <section class="block">
+        <a class="back" href="#Olimpiade" data-page="Olimpiade">&larr; Kembali ke Olimpiade</a>
+        <h2>Teori Bilangan</h2>
+        <ul class="books">
+          <li class="book-card">
+            <div class="book-cover">
+              104
+              <img src="cover/104-number-theory.jpg" alt="Sampul 104 Number Theory Problems" onerror="this.remove()">
+            </div>
+            <div class="book-body">
+              <span class="book-title">104 Number Theory Problems</span>
+              <span class="book-author">Titu Andreescu, Dorin Andrica, Zuming Feng</span>
+              <a class="btn-book" href="https://drive.google.com/file/d/1A7MSCJCiBNPrLACSo2QBlDi2MPId5bv-/view?usp=drive_link" target="_blank" rel="noopener">Lihat</a>
+            </div>
+          </li>
+          <li class="book-card">
+            <div class="book-cover">
+              AoPS
+              <img src="cover/aops-number-theory.jpg" alt="Sampul AoPS Introduction to Number Theory" onerror="this.remove()">
+            </div>
+            <div class="book-body">
+              <span class="book-title">AoPS Introduction to Number Theory</span>
+              <span class="book-author">Mathew Crawford</span>
+              <a class="btn-book" href="https://drive.google.com/file/d/1QJwdat5tNm8xqzMMlw44Y3rM0aFE5U0x/view?usp=drive_link" target="_blank" rel="noopener">Lihat</a>
+            </div>
+          </li>
+        </ul>
+      </section>
+    </div>
+
+    <!-- Halaman: Aljabar -->
+    <div class="page" id="aljabar" hidden>
+      <section class="block">
+        <a class="back" href="#Olimpiade" data-page="Olimpiade">&larr; Kembali ke Olimpiade</a>
+        <h2>Aljabar</h2>
+        <ul class="books">
+          <li class="book-card">
+            <div class="book-cover">
+              Ineq
+              <img src="cover/102-combinatorial.jpg" alt="Sampul 102 Combinatorial Problems" onerror="this.remove()">
+            </div>
+            <div class="book-body">
+              <span class="book-title">102 Combinatorial Problems</span>
+              <span class="book-author">Titu Andreescu, Zuming Feng</span>
+              <a class="btn-book" href="https://drive.google.com/GANTI-DENGAN-LINK-DRIVE-ANDA" target="_blank" rel="noopener">Lihat</a>
+            </div>
+          </li>
+          <!-- Tambah buku lain: salin blok <li class="book-card">...</li> di atas -->
+        </ul>
+      </section>
+    </div>
+
+    <!-- Halaman: Geometri -->
+    <div class="page" id="geo" hidden>
+      <section class="block">
+        <a class="back" href="#Olimpiade" data-page="Olimpiade">&larr; Kembali ke Olimpiade</a>
+        <h2>Geometri</h2>
+        <ul class="books">
+          <li class="book-card">
+            <div class="book-cover">
+              EGMO
+              <img src="cover/euclidean-geometry.jpg" alt="Sampul Euclidean Geometry in Mathematical Olympiads" onerror="this.remove()">
+            </div>
+            <div class="book-body">
+              <span class="book-title">Euclidean Geometry in Mathematical Olympiads</span>
+              <span class="book-author">Evan Chen</span>
+              <a class="btn-book" href="https://drive.google.com/GANTI-DENGAN-LINK-DRIVE-ANDA" target="_blank" rel="noopener">Lihat</a>
+            </div>
+          </li>
+          <!-- Tambah buku lain: salin blok <li class="book-card">...</li> di atas -->
+        </ul>
+      </section>
+    </div>
+
+    <!-- Halaman: Kombinatorika -->
+    <div class="page" id="kombin" hidden>
+      <section class="block">
+        <a class="back" href="#Olimpiade" data-page="Olimpiade">&larr; Kembali ke Olimpiade</a>
+        <h2>Kombinatorika</h2>
+        <ul class="books">
+          <li class="book-card">
+            <div class="book-cover">
+              102
+              <img src="cover/102-combinatorial.jpg" alt="Sampul 102 Combinatorial Problems" onerror="this.remove()">
+            </div>
+            <div class="book-body">
+              <span class="book-title">102 Combinatorial Problems</span>
+              <span class="book-author">Titu Andreescu, Zuming Feng</span>
+              <a class="btn-book" href="https://drive.google.com/GANTI-DENGAN-LINK-DRIVE-ANDA" target="_blank" rel="noopener">Lihat</a>
+            </div>
+          </li>
+          <!-- Tambah buku lain: salin blok <li class="book-card">...</li> di atas -->
+        </ul>
+      </section>
+    </div>
+
+    <!-- Halaman: Problem Solving -->
+    <div class="page" id="problem-solving" hidden>
+      <section class="block">
+        <a class="back" href="#Olimpiade" data-page="Olimpiade">&larr; Kembali ke Olimpiade</a>
+        <h2>Problem Solving</h2>
+        <ul class="books">
+          <li class="book-card">
+            <div class="book-cover">
+              HTSI
+              <img src="cover/how-to-solve-it.jpg" alt="Sampul How to Solve It" onerror="this.remove()">
+            </div>
+            <div class="book-body">
+              <span class="book-title">How to Solve It</span>
+              <span class="book-author">G. Pólya</span>
+              <a class="btn-book" href="https://drive.google.com/GANTI-DENGAN-LINK-DRIVE-ANDA" target="_blank" rel="noopener">Lihat</a>
+            </div>
+          </li>
+          <!-- Tambah buku lain: salin blok <li class="book-card">...</li> di atas -->
+        </ul>
+      </section>
+    </div>
+
+    <!-- Halaman 2: Kuliah (daftar file dengan filter) -->
+    <div class="page" id="kuliah" hidden>
+      <section class="block">
+        <h2>Kuliah</h2>
+        <p>Arsip buku, PPT, exercise, dan soal ujian. Pilih filter untuk mempersempit daftar.</p>
+
+        <div class="filters" id="kuliahFilters">
+          <div class="frow" data-group="sem">
+            <span class="flabel">Semester</span>
+            <button class="chip" type="button" data-val="all" aria-pressed="true">Semua</button>
+            <button class="chip" type="button" data-val="1" aria-pressed="false">Semester 1</button>
+            <button class="chip" type="button" data-val="2" aria-pressed="false">Semester 2</button>
+            <button class="chip" type="button" data-val="luar" aria-pressed="false">Di luar jurusan</button>
+          </div>
+          <div class="frow" data-group="jenis">
+            <span class="flabel">Jenis</span>
+            <button class="chip" type="button" data-val="all" aria-pressed="true">Semua</button>
+            <button class="chip" type="button" data-val="buku" aria-pressed="false">Buku</button>
+            <button class="chip" type="button" data-val="ppt" aria-pressed="false">PPT</button>
+            <button class="chip" type="button" data-val="soal" aria-pressed="false">Soal Ujian</button>
+            <button class="chip" type="button" data-val="exercise" aria-pressed="false">Exercise</button>
+          </div>
+        </div>
+
+        <p class="count" id="kuliahCount" role="status"></p>
+        <ul class="files" id="kuliahFiles">
+          <li class="file-card" data-sem="1" data-jenis="buku">
+            <div class="file-cover">
+              Kal
+              <img src="cover/Kalkulus Purcell.jpg" alt="Sampul Judul Buku Kalkulus" onerror="this.remove()">
+            </div>
+            <div class="file-labels"><span class="lbl-sem">Semester 1</span><span class="lbl-jenis">Buku</span></div>
+            <span class="file-title">Calculus (Edisi Kesembilan)</span>
+            <span class="file-author">Dale Varberg, Edwin Purcell and Steve Rigdon</span>
+            <span class="file-sub">Kalkulus 1</span>
+            <a class="btn-book" href="https://drive.google.com/file/d/1Q-vD-0h4bTCWEYG8gfQBhg2_DnokDUz_/view?usp=drive_link" target="_blank" rel="noopener">Buka</a>
+          </li>
+          <li class="file-card" data-sem="1" data-jenis="soal">
+            <div class="file-cover">
+              UTS
+              <img src="cover/uts-kalkulus-1.jpg" alt="Sampul Soal UTS Kalkulus 1" onerror="this.remove()">
+            </div>
+            <div class="file-labels"><span class="lbl-sem">Semester 3</span><span class="lbl-jenis">Soal Ujian</span></div>
+            <span class="file-title">Soal UTS Metode Statistika</span>
+            <span class="file-author">-</span>
+            <span class="file-sub">Kalkulus 1</span>
+            <a class="btn-book" href="https://drive.google.com/file/d/16ikmkU_tLbs6Wtm5304FEhD5aruEOETr/view?usp=drive_link" target="_blank" rel="noopener">Buka</a>
+          </li>
+          <!-- Tambah file baru: salin satu blok <li class="file-card">...</li> lalu ubah:
+               data-sem   = 1, 2, 3, ... atau luar (untuk buku di luar jurusan)
+               data-jenis = buku | ppt | soal | exercise
+               teks cadangan + gambar sampul (cover/nama.jpg), judul, penulis, mata kuliah/bidang, link Drive
+               Baris file-cover dan file-author boleh dihapus jika tidak diperlukan. -->
+        </ul>
+        <p class="empty" id="kuliahEmpty" hidden>Belum ada file untuk kombinasi filter ini.</p>
+      </section>
+    </div>
+
+    <!-- Halaman 3: Proyek -->
+    <div class="page" id="proyek" hidden>
+      <section class="block">
+        <h2>Proyek</h2>
+        <p>Tulis proyek-proyek Anda di sini.</p>
+      </section>
+    </div>
+
+    <!-- Halaman 4: CV -->
+    <div class="page" id="cv" hidden>
+      <section class="block cv">
+        <div class="cv-head">
+          <div>
+            <h2>Koko Ali Firdaus Alfaridzi</h2>
+            <p class="cv-role">Mathematics undergraduate &amp; olympiad coach</p>
+          </div>
+          <button class="cv-print" id="printCv" type="button">Simpan sebagai PDF</button>
+        </div>
+        <ul class="cv-contact">
+          <li>Universitas Negeri Malang</li>
+          <li>Blitar, Jawa Timur</li>
+          <li><a href="tel:+6285850713892">+6285850713892</a></li>
+          <li><a href="mailto:kokoalifirdausa@gmail.com">kokoalifirdausa@gmail.com</a></li>
+          <li><a href="https://github.com/kokoalifirdausa" target="_blank" rel="noopener">GitHub</a></li>
+        </ul>
+
+        <h3 class="cv-sec">Tentang Saya</h3>
+        <p>Mahasiswa program studi Pendidikan Matematika di Universitas Negeri Malang. Memiliki pengalaman sebagai tutor olimpiade matematika, serta ketertarikan pada bidang olimpiade dan berniat untuk menyebarluaskannya.</p>
+
+        <h3 class="cv-sec">Pendidikan</h3>
+        <div class="cv-item">
+          <div class="cv-date">2024 &ndash; sekarang</div>
+          <div class="cv-body">
+            <strong>Universitas Negeri Malang</strong>
+            <span class="cv-sub">Prodi Pendidikan Matematika</span>
+          </div>
+        </div>
+        <div class="cv-item">
+          <div class="cv-date">2021 &ndash; 2024</div>
+          <div class="cv-body">
+            <strong>MA Abadiyah Pati</strong>
+          </div>
+        </div>
+        <div class="cv-item">
+          <div class="cv-date">2018 &ndash; 2021</div>
+          <div class="cv-body">
+            <strong>MTsN 4 Blitar</strong>
+          </div>
+        </div>
+        <div class="cv-item">
+          <div class="cv-date">2012 &ndash; 2018</div>
+          <div class="cv-body">
+            <strong>MI Nurul Ulum Gadungan</strong>
+          </div>
+        </div>
+
+        <h3 class="cv-sec">Pengalaman</h3>
+        <div class="cv-item">
+          <div class="cv-date">2026</div>
+          <div class="cv-body">
+            <strong>Koordinator Tim Soal</strong>
+            <span class="cv-sub">OMVN SMA</span>
+          </div>
+        </div>
+        <div class="cv-item">
+          <div class="cv-date">2025 &ndash; sekarang</div>
+          <div class="cv-body">
+            <strong>Tutor</strong>
+            <span class="cv-sub">Sains Sosial Akademi</span>
+          </div>
+        </div>
+        <div class="cv-item">
+          <div class="cv-date">2025</div>
+          <div class="cv-body">
+            <strong>Tim Soal</strong>
+            <span class="cv-sub">OMVN SMA</span>
+          </div>
+        </div>
+        <div class="cv-item">
+          <div class="cv-date">2022 &ndash; sekarang</div>
+          <div class="cv-body">
+            <strong>Tutor</strong>
+            <span class="cv-sub">Senyum Cerdas Nusantara</span>
+          </div>
+        </div>
+        <div class="cv-item">
+          <div class="cv-date">2021</div>
+          <div class="cv-body">
+            <strong>Tim Pembina Olimpiade</strong>
+            <span class="cv-sub">MTsN 4 Blitar</span>
+          </div>
+        </div>
+
+        <h3 class="cv-sec">Proyek</h3>
+        <div class="cv-item">
+          <div class="cv-date">&mdash;</div>
+          <div class="cv-body">
+            <strong>MATHZY</strong>
+            <span class="cv-sub">Board game dadu edukatif untuk belajar statistika</span>
+            <p>Permainan berbasis kartu misi yang mengajak siswa mempelajari konsep statistika sambil bermain.</p>
+          </div>
+        </div>
+        <div class="cv-item">
+          <div class="cv-date">&mdash;</div>
+          <div class="cv-body">
+            <strong>Website Pribadi (Koko's Homepage)</strong>
+            <span class="cv-sub">HTML, CSS, JavaScript</span>
+            <p>Situs berisi koleksi buku olimpiade, arsip kuliah, dan soal latihan interaktif.</p>
+          </div>
+        </div>
+
+        <h3 class="cv-sec">Prestasi</h3>
+        <div class="cv-item">
+          <div class="cv-date">2026</div>
+          <div class="cv-body">
+            <strong>Juara 2</strong>
+            <span class="cv-sub">FMC UM</span>
+          </div>
+        </div>
+        <div class="cv-item">
+          <div class="cv-date">2023</div>
+          <div class="cv-body">
+            <strong>Juara 1</strong>
+            <span class="cv-sub">Mathlicious IAIN Kudus</span>
+          </div>
+        </div>
+        <div class="cv-item">
+          <div class="cv-date">2023</div>
+          <div class="cv-body">
+            <strong>Medali Emas</strong>
+            <span class="cv-sub">Pekan Hari Ilmiah UNISMA</span>
+          </div>
+        </div>
+        <div class="cv-item">
+          <div class="cv-date">2023</div>
+          <div class="cv-body">
+            <strong>Medali Perak</strong>
+            <span class="cv-sub">EMC (Eduversal Mathematics Competition)</span>
+          </div>
+        </div>
+        <div class="cv-item">
+          <div class="cv-date">2022</div>
+          <div class="cv-body">
+            <strong>Juara 2</strong>
+            <span class="cv-sub">Festival Pendidikan Matematika UIN Salatiga</span>
+          </div>
+        </div>
+        <div class="cv-item">
+          <div class="cv-date">2022</div>
+          <div class="cv-body">
+            <strong>Juara 2</strong>
+            <span class="cv-sub">COMMATH UIN Walisongo</span>
+          </div>
+        </div>
+        <div class="cv-item">
+          <div class="cv-date">2022</div>
+          <div class="cv-body">
+            <strong>Juara 3</strong>
+            <span class="cv-sub">KOMET UIN Maliki</span>
+          </div>
+        </div>
+        <div class="cv-item">
+          <div class="cv-date">2022</div>
+          <div class="cv-body">
+            <strong>Medali Perak</strong>
+            <span class="cv-sub">IKMC Junior</span>
+          </div>
+        </div>
+        <div class="cv-item">
+          <div class="cv-date">2022</div>
+          <div class="cv-body">
+            <strong>Honorable Mention</strong>
+            <span class="cv-sub">Kompetisi Sains Siswa Muslim Indonesia</span>
+          </div>
+        </div>
+        <div class="cv-item">
+          <div class="cv-date">2021</div>
+          <div class="cv-body">
+            <strong>Medali Perunggu</strong>
+            <span class="cv-sub">Pekan Hari Ilmiah UNISMA</span>
+          </div>
+        </div>
+
+        <h3 class="cv-sec">Keahlian</h3>
+        <ul class="cv-skills">
+          <li>Olimpiade Matematika</li>
+          <li>LaTeX</li>
+          <li>HTML &amp; CSS</li>
+        </ul>
+      </section>
+    </div>
+    <!-- Kolom komentar Disqus (tampil di bawah isi setiap halaman, kecuali Beranda) -->
+    <section class="comment">
+      <h3>Komentar</h3>
+      <div id="disqus_thread"></div>
+      <noscript>Aktifkan JavaScript untuk melihat komentar.</noscript>
+    </section>
+  </main>
+</div>
+
+<script>
+  // ----- Disqus -----
+  // 1) Daftar di disqus.com, buat site, lalu salin "shortname" Anda ke sini.
+  const DISQUS_SHORTNAME = "kokoali-1";
+
+  let currentPage = "beranda";
+  let disqusStarted = false;
+  const baseUrl = location.origin + location.pathname;
+
+  // Setiap halaman (Olimpiade, Kuliah, ...) punya utas komentar sendiri
+  function disqusConfig() {
+    this.page.url = baseUrl + "#" + currentPage;
+    this.page.identifier = "koko-" + currentPage;
+  }
+
+  function loadDisqus() {
+    if (currentPage === "beranda") return; // komentar tidak ditampilkan di Beranda
+    const thread = document.getElementById("disqus_thread");
+    if (DISQUS_SHORTNAME.startsWith("GANTI")) {
+      thread.innerHTML = '<p class="note">Komentar belum aktif. Isi DISQUS_SHORTNAME di bagian script index.html.</p>';
+      return;
+    }
+    window.disqus_config = disqusConfig;
+    if (!disqusStarted) {
+      disqusStarted = true;
+      const s = document.createElement("script");
+      s.src = "https://" + DISQUS_SHORTNAME + ".disqus.com/embed.js";
+      s.setAttribute("data-timestamp", +new Date());
+      document.head.appendChild(s);
+    } else if (window.DISQUS) {
+      DISQUS.reset({ reload: true, config: disqusConfig });
+    }
+  }
+
+  // ----- Pindah halaman tanpa reload -----
+  const buttons = document.querySelectorAll(".menu button");
+  const pages = document.querySelectorAll(".page");
+  // Sub-halaman menginduk ke menu "Olimpiade"
+  const parents = { teobil: "Olimpiade", aljabar: "Olimpiade", geo: "Olimpiade", kombin: "Olimpiade", "problem-solving": "Olimpiade" };
+  function show(id) {
+    currentPage = id;
+    pages.forEach(p => p.hidden = p.id !== id);
+    document.querySelector(".wrap").classList.toggle("home", id === "beranda");
+    const menuId = parents[id] || id;
+    buttons.forEach(b => b.dataset.page === menuId ? b.setAttribute("aria-current", "page") : b.removeAttribute("aria-current"));
+    const label = parents[id]
+      ? document.querySelector("#" + id + " h2").textContent
+      : [...buttons].find(b => b.dataset.page === id).textContent;
+    document.title = label + " - Koko Ali Firdaus A";
+    window.scrollTo({ top: 0 });
+    loadDisqus();
+  }
+  // Menu atas dan semua tautan ber-atribut data-page (poin topik, tombol kembali, kartu Beranda)
+  document.querySelectorAll("[data-page]").forEach(el => el.addEventListener("click", e => {
+    e.preventDefault();
+    show(el.dataset.page);
+    history.replaceState(null, "", "#" + el.dataset.page);
+  }));
+  const start = location.hash.slice(1);
+  if ([...pages].some(p => p.id === start)) show(start);
+  else loadDisqus();
+
+    // ----- Kuliah: filter semester + jenis file -----
+  (function () {
+    const bar = document.getElementById("kuliahFilters");
+    const cards = [...document.querySelectorAll("#kuliahFiles .file-card")];
+    const state = { sem: "all", jenis: "all" };
+    function apply() {
+      let n = 0;
+      cards.forEach(c => {
+        const ok = (state.sem === "all" || c.dataset.sem === state.sem) &&
+                   (state.jenis === "all" || c.dataset.jenis === state.jenis);
+        c.hidden = !ok;
+        if (ok) n++;
+      });
+      document.getElementById("kuliahCount").textContent = "Menampilkan " + n + " dari " + cards.length + " file";
+      document.getElementById("kuliahEmpty").hidden = n > 0;
+    }
+    bar.addEventListener("click", e => {
+      const btn = e.target.closest(".chip");
+      if (!btn) return;
+      const group = btn.closest(".frow").dataset.group;
+      state[group] = btn.dataset.val;
+      btn.closest(".frow").querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", c === btn ? "true" : "false"));
+      apply();
+    });
+    apply();
+  })();
+
+  // ----- CV: simpan sebagai PDF lewat dialog cetak browser -----
+  document.getElementById("printCv").addEventListener("click", () => window.print());
+
+  // ----- Mode terang/gelap -----
+  const root = document.documentElement;
+  let saved = null;
+  try { saved = localStorage.getItem("theme"); } catch (e) {}
+  root.dataset.theme = saved || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  document.getElementById("themeBtn").addEventListener("click", () => {
+    const next = root.dataset.theme === "dark" ? "light" : "dark";
+    root.dataset.theme = next;
+    try { localStorage.setItem("theme", next); } catch (e) {}
+    setTimeout(loadDisqus, 50);
+  });
+
+  // ----- Beranda: efek mengetik -----
+  (function () {
+    const el = document.getElementById("typed");
+    if (!el) return;
+    const words = ["Teori Bilangan", "Aljabar", "Geometri", "Kombinatorika", "Problem Solving"];
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) { el.textContent = words.join(" · "); return; }
+    let w = 0, i = 0, del = false;
+    (function tick() {
+      const word = words[w];
+      el.textContent = word.slice(0, i);
+      if (!del && i === word.length) { del = true; return setTimeout(tick, 1400); }
+      if (del && i === 0) { del = false; w = (w + 1) % words.length; }
+      i += del ? -1 : 1;
+      setTimeout(tick, del ? 40 : 90);
+    })();
+  })();
+
+  // ----- Beranda: simbol matematika melayang -----
+  (function () {
+    const box = document.getElementById("floaters");
+    if (!box) return;
+    const sym = ["∑", "π", "∫", "√", "∞", "≡", "θ", "Δ", "φ", "%", "±", "∂"];
+    for (let n = 0; n < 14; n++) {
+      const s = document.createElement("span");
+      s.textContent = sym[n % sym.length];
+      s.style.setProperty("--x", Math.random() * 95 + "%");
+      s.style.setProperty("--s", 22 + Math.random() * 34 + "px");
+      s.style.setProperty("--d", 14 + Math.random() * 14 + "s");
+      s.style.setProperty("--delay", -Math.random() * 20 + "s");
+      box.appendChild(s);
+    }
+  })();
+
+  // ----- Latar titik mengikuti kursor -----
+  (function () {
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let raf;
+    addEventListener("mousemove", e => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        document.body.style.setProperty("--px", (e.clientX / innerWidth - .5) * -24 + "px");
+        document.body.style.setProperty("--py", (e.clientY / innerHeight - .5) * -24 + "px");
+      });
+    });
+  })();
+
+  // ----- Pencarian cepat (buku olimpiade + arsip kuliah) -----
+  (function () {
+    const q = document.getElementById("q");
+    const box = document.getElementById("results");
+    const norm = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+    // Dibaca ulang tiap pencarian, jadi materi dari /api/items ikut terindeks
+    function collect() {
+      const out = [];
+      document.querySelectorAll(".book-card").forEach(c => {
+        const page = c.closest(".page");
+        out.push({
+          title: c.querySelector(".book-title").textContent,
+          author: c.querySelector(".book-author").textContent,
+          where: "Olimpiade · " + page.querySelector("h2").textContent,
+          pageId: page.id,
+          href: c.querySelector(".btn-book").getAttribute("href")
+        });
+      });
+      document.querySelectorAll("#kuliahFiles .file-card").forEach(c => {
+        out.push({
+          title: c.querySelector(".file-title").textContent,
+          author: (c.querySelector(".file-author") || {}).textContent || "",
+          where: "Kuliah · " + c.querySelector(".lbl-jenis").textContent + " · " + c.querySelector(".lbl-sem").textContent,
+          pageId: "kuliah",
+          href: c.querySelector(".btn-book").getAttribute("href")
+        });
+      });
+      return out;
+    }
+
+    function render() {
+      const words = norm(q.value).split(/\s+/).filter(Boolean);
+      box.textContent = "";
+      if (!words.length) { box.hidden = true; return; }
+      const hits = collect().filter(it => {
+        const hay = norm(it.title + " " + it.author + " " + it.where);
+        return words.every(w => hay.includes(w));
+      }).slice(0, 8);
+
+      if (!hits.length) {
+        const li = document.createElement("li");
+        li.className = "r-none";
+        li.textContent = "Tidak ada yang cocok.";
+        box.appendChild(li);
+      }
+      hits.forEach(it => {
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+        // Link Drive masih placeholder -> arahkan ke halaman topiknya
+        if (it.href.includes("GANTI")) { a.href = "#" + it.pageId; a.dataset.go = it.pageId; }
+        else { a.href = it.href; a.target = "_blank"; a.rel = "noopener"; }
+        const t = document.createElement("span"); t.className = "r-title"; t.textContent = it.title;
+        const s = document.createElement("span"); s.className = "r-sub";
+        s.textContent = (it.author && it.author !== "-" ? it.author + " — " : "") + it.where;
+        a.append(t, s);
+        li.appendChild(a);
+        box.appendChild(li);
+      });
+      box.hidden = false;
+    }
+
+    q.addEventListener("input", render);
+    q.addEventListener("keydown", e => { if (e.key === "Escape") { q.value = ""; render(); } });
+    box.addEventListener("click", e => {
+      const a = e.target.closest("a[data-go]");
+      if (!a) return;
+      e.preventDefault();
+      show(a.dataset.go);
+      history.replaceState(null, "", "#" + a.dataset.go);
+      q.value = ""; render();
+    });
+    document.addEventListener("click", e => { if (!e.target.closest(".search")) box.hidden = true; });
+    q.addEventListener("focus", () => { if (q.value) render(); });
+  })();
+
+  // ----- Beranda: Soal Pemanasan harian -----
+  (function () {
+    const $ = id => document.getElementById(id);
+    if (!$("warmup")) return;
+    // Tambah soal baru: salin satu baris {t, q, a, s}. a harus berupa angka.
+    const P = [
+      { t: "Teori Bilangan", q: "Berapa sisa pembagian 2¹⁰⁰ oleh 7?", a: 2,
+        s: "2³ = 8 ≡ 1 (mod 7). Karena 100 = 3·33 + 1, maka 2¹⁰⁰ ≡ (2³)³³ · 2 ≡ 2 (mod 7)." },
+      { t: "Teori Bilangan", q: "Berapa angka satuan dari 7²⁰²⁶?", a: 9,
+        s: "Angka satuan pangkat 7 berulang tiap 4: 7, 9, 3, 1. Karena 2026 ≡ 2 (mod 4), angka satuannya sama dengan 7² = 49, yaitu 9." },
+      { t: "Aljabar", q: "Jika x + 1/x = 3, berapa nilai x² + 1/x²?", a: 7,
+        s: "Kuadratkan: (x + 1/x)² = x² + 2 + 1/x² = 9, sehingga x² + 1/x² = 9 − 2 = 7." },
+      { t: "Aljabar", q: "Berapa jumlah semua bilangan bulat dari 1 sampai 100 yang habis dibagi 3?", a: 1683,
+        s: "Bilangannya 3, 6, ..., 99 (33 suku) = 3(1 + 2 + ... + 33) = 3 · 561 = 1683." },
+      { t: "Kombinatorika", q: "Berapa banyak susunan berbeda dari huruf-huruf pada kata MATEMATIKA?", a: 151200,
+        s: "Ada 10 huruf dengan M dua kali, A tiga kali, T dua kali. Banyak susunan = 10! / (2! · 3! · 2!) = 3.628.800 / 24 = 151.200." },
+      { t: "Kombinatorika", q: "Sepuluh orang saling bersalaman, setiap pasangan tepat satu kali. Berapa jabat tangan yang terjadi?", a: 45,
+        s: "Banyak pasangan = C(10, 2) = 10 · 9 / 2 = 45." },
+      { t: "Geometri", q: "Berapa jumlah besar sudut dalam segi-12 (dalam derajat)?", a: 1800,
+        s: "Jumlah sudut dalam segi-n = (n − 2) · 180° = 10 · 180° = 1800°." },
+      { t: "Geometri", q: "Berapa banyak diagonal pada segi-12?", a: 54,
+        s: "n(n − 3)/2 = 12 · 9 / 2 = 54." }
+    ];
+    // Soal berganti tiap hari (mengikuti tanggal lokal pengunjung)
+    const today = Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 864e5);
+    const base = today % P.length;
+    let idx = base;
+    const num = s => Number(s.replace(/[\s.]/g, "").replace(",", "."));
+    const msg = (text, cls) => { const m = $("wuMsg"); m.textContent = text; m.className = cls || ""; };
+
+    function load() {
+      const p = P[idx];
+      $("wuTag").textContent = (idx === base ? "Hari ini" : "Latihan") + " · " + p.t;
+      $("wuQ").textContent = p.q;
+      $("wuIn").value = "";
+      msg("");
+      $("wuSol").hidden = true;
+    }
+    function check() {
+      const v = $("wuIn").value.trim();
+      if (!v) { msg("Tulis jawabanmu dulu.", "bad"); return; }
+      if (num(v) === P[idx].a) msg("Benar! 🎉 Jawabannya " + P[idx].a.toLocaleString("id-ID") + ".", "ok");
+      else msg("Belum tepat, coba lagi.", "bad");
+    }
+    $("wuCheck").addEventListener("click", check);
+    $("wuIn").addEventListener("keydown", e => { if (e.key === "Enter") check(); });
+    $("wuShow").addEventListener("click", () => {
+      const p = P[idx];
+      $("wuSol").textContent = "Jawaban: " + p.a.toLocaleString("id-ID") + ". " + p.s;
+      $("wuSol").hidden = false;
+    });
+    $("wuNext").addEventListener("click", () => { idx = (idx + 1) % P.length; load(); });
+    load();
+  })();
+
+  // ----- Beranda: Terbaru (3 materi terakhir dari Panel Admin) -----
+  function renderRecent(items) {
+    if (!Array.isArray(items) || !items.length) return;
+    let arr = items.slice();
+    if (arr.every(i => i.createdAt)) arr.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    else arr.reverse(); // tanpa tanggal: anggap yang terakhir ditambahkan adalah yang terbaru
+    arr = arr.slice(0, 3);
+    const topicName = { teobil: "Teori Bilangan", aljabar: "Aljabar", geo: "Geometri", kombin: "Kombinatorika", "problem-solving": "Problem Solving" };
+    const jenisName = { buku: "Buku", ppt: "PPT", soal: "Soal Ujian", exercise: "Exercise" };
+    const list = document.getElementById("recent");
+    list.textContent = "";
+    arr.forEach(it => {
+      const olim = it.section === "olimpiade";
+      const where = olim ? "Olimpiade · " + (topicName[it.topic] || it.topic)
+                         : "Kuliah · " + (jenisName[it.jenis] || it.jenis);
+      const a = document.createElement("a");
+      a.className = "card"; a.href = it.fileUrl; a.target = "_blank"; a.rel = "noopener";
+      const ico = document.createElement("span"); ico.className = "ico"; ico.textContent = olim ? "\uD83D\uDCDA" : "\uD83C\uDF93";
+      const t = document.createElement("strong"); t.textContent = it.title;
+      const d = document.createElement("span"); d.className = "d";
+      d.textContent = (it.author && it.author !== "-" ? it.author + " — " : "") + where;
+      a.append(ico, t, d);
+      list.appendChild(a);
+    });
+    document.getElementById("recentBox").hidden = false;
+  }
+
+  // ----- Muat materi dinamis dari Panel Admin (/api/items) -----
+  (async function loadDynamicItems() {
+    try {
+      const res = await fetch('/api/items');
+      if (!res.ok) return;
+      const { items } = await res.json();
+      renderRecent(items);
+      const esc = s => String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      const jenisLabel = { buku: 'Buku', ppt: 'PPT', soal: 'Soal Ujian', exercise: 'Exercise' };
+
+      items.forEach(it => {
+        if (it.section === 'olimpiade') {
+          const ul = document.querySelector(`#${it.topic} .books`);
+          if (!ul) return;
+          const li = document.createElement('li');
+          li.className = 'book-card';
+          li.innerHTML = `
+            <div class="book-cover">
+              ${esc(it.badge)}
+              ${it.coverUrl ? `<img src="${esc(it.coverUrl)}" alt="Sampul ${esc(it.title)}" onerror="this.remove()">` : ''}
+            </div>
+            <div class="book-body">
+              <span class="book-title">${esc(it.title)}</span>
+              <span class="book-author">${esc(it.author)}</span>
+              <a class="btn-book" href="${esc(it.fileUrl)}" target="_blank" rel="noopener">Lihat</a>
+            </div>
+          `;
+          ul.appendChild(li);
+        } else if (it.section === 'kuliah') {
+          const ul = document.getElementById('kuliahFiles');
+          if (!ul) return;
+          const li = document.createElement('li');
+          li.className = 'file-card';
+          li.dataset.sem = it.sem;
+          li.dataset.jenis = it.jenis;
+          const semText = it.sem === 'luar' ? 'Di luar jurusan' : `Semester ${it.sem}`;
+          li.innerHTML = `
+            <div class="file-cover">
+              ${esc(it.badge)}
+              ${it.coverUrl ? `<img src="${esc(it.coverUrl)}" alt="Sampul ${esc(it.title)}" onerror="this.remove()">` : ''}
+            </div>
+            <div class="file-labels">
+              <span class="lbl-sem">${esc(semText)}</span>
+              <span class="lbl-jenis">${esc(jenisLabel[it.jenis] || it.jenis)}</span>
+            </div>
+            <span class="file-title">${esc(it.title)}</span>
+            <span class="file-author">${esc(it.author || '-')}</span>
+            <span class="file-sub">${esc(it.subject)}</span>
+            <a class="btn-book" href="${esc(it.fileUrl)}" target="_blank" rel="noopener">Buka</a>
+          `;
+          ul.appendChild(li);
+        }
+      });
+
+      // Perbarui hitungan filter di halaman Kuliah
+      const activeSem = document.querySelector('#kuliahFilters [data-group="sem"] .chip[aria-pressed="true"]');
+      if (activeSem) activeSem.click();
+    } catch (e) {
+      console.error('Gagal memuat materi dinamis:', e);
+    }
+  })();
+</script>
+</body>
+</html>
