@@ -215,7 +215,8 @@ async function handleApi(req, res, url) {
     if (!checkPw(b.password ?? '')) throw httpErr(401, 'Password salah');
     const sid = crypto.randomBytes(24).toString('hex');
     sessions.set(sid, { exp: Date.now() + SESSION_MS });
-    return send(res, 200, { ok: true }, { 'Set-Cookie': `sid=${sid}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${SESSION_MS / 1000}` });
+    const isHttps = req.headers['x-forwarded-proto'] === 'https';
+    return send(res, 200, { ok: true }, { 'Set-Cookie': `sid=${sid}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${SESSION_MS / 1000}${isHttps ? '; Secure' : ''}` });
   }
 
   // --- Admin: endpoint terproteksi ---
@@ -225,7 +226,8 @@ async function handleApi(req, res, url) {
     if (p === '/api/admin/me' && m === 'GET') return send(res, 200, { ok: true });
     if (p === '/api/admin/logout' && m === 'POST') {
       sessions.delete(sid);
-      return send(res, 200, { ok: true }, { 'Set-Cookie': 'sid=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0' });
+      const isHttps = req.headers['x-forwarded-proto'] === 'https';
+      return send(res, 200, { ok: true }, { 'Set-Cookie': `sid=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0${isHttps ? '; Secure' : ''}` });
     }
 
     // Ambil semua item di panel admin
@@ -367,7 +369,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, HOST, () => {
-  console.log(`Server berjalan di  http://localhost:${PORT}`);
-  console.log(`Panel admin di      http://localhost:${PORT}/admin`);
+  console.log(`Server berjalan di  http://${HOST}:${PORT}`);
+  console.log(`Panel admin di      http://${HOST}:${PORT}/admin`);
 });
 for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, () => { flush(); process.exit(0); });
