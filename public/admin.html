@@ -199,7 +199,7 @@
           </div>
 
           <div class="field full" id="docFileField">
-            <label for="docFile">Pilih Berkas (Maks. 25 MB)</label>
+            <label for="docFile" id="docFileLabel">Pilih Berkas (Maks. 25 MB)</label>
             <input type="file" id="docFile" accept=".pdf,.ppt,.pptx,.zip">
           </div>
 
@@ -264,6 +264,31 @@
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
+
+  // Di Vercel, file diunggah langsung dari browser ke Vercel Blob (tanpa batas 4,5 MB)
+  let clientUpload = false;
+  const configReady = fetch('/api/config')
+    .then(r => r.json())
+    .then(c => {
+      clientUpload = !!c.clientUpload;
+      if (clientUpload) document.getElementById('docFileLabel').textContent = 'Pilih Berkas (Maks. 100 MB)';
+    })
+    .catch(() => {});
+
+  let blobUpload = null;
+  async function uploadToBlob(file, prefix, allowedExts) {
+    const ext = (file.name.match(/\.[a-z0-9]+$/i) || [''])[0].toLowerCase();
+    if (!allowedExts.includes(ext)) {
+      throw new Error('Tipe file tidak diizinkan (' + (ext || 'tanpa ekstensi') + ')');
+    }
+    if (!blobUpload) blobUpload = (await import('/blob-client.js')).upload;
+    const result = await blobUpload(`uploads/${prefix}-${Date.now()}${ext}`, file, {
+      access: 'public',
+      handleUploadUrl: '/api/admin/blob-upload',
+      multipart: file.size > 20 * 1024 * 1024
+    });
+    return result.url;
+  }
 
   // Cek status login
   async function init() {
@@ -343,6 +368,10 @@
       const docInput = document.getElementById('docFile');
       const coverInput = document.getElementById('coverFile');
 
+      await configReady;
+      const docFile = mode === 'upload' ? docInput.files[0] : null;
+      const coverFile = coverInput.files[0];
+
       const payload = {
         section: sectionSel.value,
         topic: document.getElementById('topicSel').value,
@@ -352,11 +381,26 @@
         title: document.getElementById('titleInput').value,
         author: document.getElementById('authorInput').value,
         badge: document.getElementById('badgeInput').value,
-        externalUrl: mode === 'link' ? document.getElementById('externalUrl').value : '',
-        fileData: (mode === 'upload' && docInput.files[0]) ? await fileToBase64(docInput.files[0]) : '',
-        coverData: coverInput.files[0] ? await fileToBase64(coverInput.files[0]) : ''
+        externalUrl: mode === 'link' ? document.getElementById('externalUrl').value : ''
       };
 
+      if (clientUpload) {
+        // Vercel: upload langsung ke Blob, server hanya menerima URL-nya
+        if (docFile) {
+          btn.textContent = 'Mengunggah berkas...';
+          payload.fileBlobUrl = await uploadToBlob(docFile, 'doc', ['.pdf', '.ppt', '.pptx', '.zip']);
+        }
+        if (coverFile) {
+          btn.textContent = 'Mengunggah sampul...';
+          payload.coverBlobUrl = await uploadToBlob(coverFile, 'cov', ['.jpg', '.jpeg', '.png', '.webp']);
+        }
+      } else {
+        // Lokal: kirim sebagai base64 seperti sebelumnya
+        payload.fileData = docFile ? await fileToBase64(docFile) : '';
+        payload.coverData = coverFile ? await fileToBase64(coverFile) : '';
+      }
+
+      btn.textContent = 'Menyimpan...';
       await api('/api/admin/items', { method: 'POST', body: JSON.stringify(payload) });
       e.target.reset();
       sectionSel.dispatchEvent(new Event('change'));

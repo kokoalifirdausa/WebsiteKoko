@@ -125,9 +125,13 @@ pdftitle={Laporan Akhir Project 1 --- Koko's Homepage},pdfauthor={Koko Ali Firda
 	
 	\subsection{Rancangan Antarmuka (UI/UX)}
 	
+	\subsection{Rancangan Antarmuka (UI/UX)}
+	
 	\textbf{Tata letak dua kolom yang responsif.} Layar dibagi dengan CSS Grid. Di sisi kiri ada sidebar berisi foto profil, bio singkat, afiliasi Universitas Negeri Malang, dan tautan kontak sosial. Di sisi kanan ada area konten yang berubah sesuai menu. Pada layar ponsel (lebar $\leq 800$ px), tata letak otomatis menjadi satu kolom.
 	
-	\textbf{Tampilan visual dan tema.} Latar belakangnya memadukan gradasi radial yang lembut dengan pola titik tipis seperti kertas grafik matematika. Bilah navigasi memakai efek kaca buram (\textit{glassmorphism}), dan tersedia mode terang maupun mode gelap.
+	\textbf{Tampilan visual dan tema.} Latar belakangnya memadukan gradasi radial yang lembut, pola titik tipis seperti kertas grafik matematika, serta ornamen simbol-simbol matematika ($\pi$, $\Sigma$, $\partial$, $\infty$). Bilah navigasi memakai efek kaca buram (\textit{glassmorphism}), dan tersedia mode terang maupun mode gelap.
+	
+	\textbf{Fitur interaktif beranda.} Halaman utama dilengkapi kolom pencarian cepat untuk mencari buku atau soal, teks topik dinamis, serta widget \textit{Soal Pemanasan} harian yang memungkinkan pengunjung mengetik jawaban, memeriksa hasil, melihat pembahasan, dan mengganti soal secara langsung.
 	
 	\textbf{Keamanan.} Aplikasi ini menerapkan sanitasi teks untuk mencegah XSS, pembatasan percobaan login (\textit{rate limiting}), pengecekan asal permintaan (\textit{Same-Origin}) untuk mencegah CSRF, dan perlindungan jalur direktori (\textit{Path Traversal Guard}).
 	

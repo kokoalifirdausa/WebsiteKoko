@@ -1,0 +1,193 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[indonesian]{babel}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{setspace}
+\usepackage{enumitem}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black,citecolor=blue!50!black,
+pdftitle={Laporan Akhir Project 1 --- Koko's Homepage},pdfauthor={Koko Ali Firdaus Alfaridzi}]{hyperref}
+
+\setstretch{1.15}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+
+% Header dan footer
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyfoot[L]{\small Laporan Akhir Project 1 --- Koko's Homepage}
+\fancyfoot[R]{\small Halaman \thepage}
+
+% Tabel dengan kolom teks yang bisa turun baris
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\renewcommand{\arraystretch}{1.3}
+
+% Kotak placeholder screenshot (pakai environment agar \url dengan # aman)
+\newenvironment{kotakgambar}[1]{%
+	\renewcommand{\captiongambar}{#1}%
+	\begin{lrbox}{\kotakbox}%
+		\begin{minipage}{0.9\textwidth}%
+			\centering\color{gray}\small
+		}{%
+		\end{minipage}%
+	\end{lrbox}%
+	\begin{center}
+		\fbox{\usebox{\kotakbox}}\\[4pt]
+		\small\textbf{\captiongambar}
+	\end{center}
+}
+\begin{document}
+	
+	% ---------------- JUDUL ----------------
+	\begin{center}
+		{\LARGE\textbf{Pengembangan Website Pribadi Dinamis sebagai Repositori Matematika dan Olimpiade}}\\[8pt]
+		
+		\vspace{20pt}
+		{\small Disusun oleh:}\\[6pt]
+		{\Large\textbf{Koko Ali Firdaus Alfaridzi}}\\[2pt]
+		NIM 240311601919\\[10pt]
+		S1 Pendidikan Matematika\\
+		Universitas Negeri Malang\\[6pt]
+		{\small\texttt{\url{https://github.com/kokoalifirdausa}}}
+	\end{center}
+	
+	\vspace{6pt}
+	
+	% ---------------- DAFTAR ISI (halaman 2) ----------------
+	\newpage
+	\renewcommand{\contentsname}{Daftar Isi}
+	\begingroup
+	\hypersetup{linkcolor=black}% teks daftar isi tetap hitam, tetap bisa diklik
+	\tableofcontents
+	\endgroup
+	\newpage
+	
+	% ---------------- 1 ----------------
+	\section{Latar Belakang}
+	
+	Teknologi web sekarang memungkinkan siapa saja, termasuk pendidik dan mahasiswa, membuat pusat sumber belajar sendiri yang rapi dan mudah dibuka kapan saja. Dulu, membuat situs yang bisa dikelola sendiri biasanya butuh tim pengembang atau layanan berbayar. Kini dengan HTML, CSS, JavaScript, dan Node.js, seorang mahasiswa pun bisa membangun aplikasi web lengkap dengan sisi pengunjung dan sisi pengelola. Peluang ini sangat berguna di bidang pendidikan, karena materi belajar yang tertata baik akan lebih mudah dicari, dibuka ulang, dan dibagikan kepada orang lain.
+
+	Saya adalah mahasiswa Pendidikan Matematika yang juga membina olimpiade matematika. Dua peran ini membuat saya berurusan dengan banyak jenis dokumen sekaligus. Di sisi perkuliahan, ada slide presentasi (PPT), buku teks, soal ujian, dan latihan soal dari setiap semester. Di sisi pembinaan olimpiade, ada buku referensi dan kumpulan soal latihan lomba yang terbagi dalam beberapa topik, yaitu Teori Bilangan, Aljabar, Geometri, Kombinatorika, dan Problem Solving. Selain itu, saya juga perlu tempat untuk menampilkan portofolio akademik, mulai dari riwayat pendidikan, pengalaman membina, proyek, sampai prestasi. Semua itu membutuhkan satu wadah terpadu supaya tidak tercecer.
+
+	Selama ini, dokumen-dokumen tersebut tersebar di banyak tautan yang berbeda, tanpa pengelompokan topik dan tanpa filter semester yang jelas. Akibatnya, mencari satu berkas tertentu sering memakan waktu, dan siswa binaan maupun teman sejawat yang meminta materi harus dikirimi tautan satu per satu. Situs statis biasa pun kurang praktis untuk kebutuhan ini, sebab setiap kali ada buku baru saya harus membuka kode HTML dan menyuntingnya secara manual. Cara ini rawan salah ketik, memakan waktu, dan membuat situs enggan diperbarui secara rutin.
+
+	Dari masalah itulah saya membuat Koko's Homepage, sebuah aplikasi web dinamis yang berjalan di Node.js murni tanpa pustaka tambahan (\textit{zero-dependency}). Pilihan tanpa dependensi ini membuat aplikasi ringan, mudah dijalankan di komputer mana pun yang punya Node.js, dan tidak bergantung pada paket pihak ketiga yang bisa berubah atau bermasalah keamanannya. Pengunjung mendapat tampilan baca yang ringan, sedangkan saya sebagai pengelola punya panel admin untuk mengatur dan mengunggah berkas sendiri, tanpa perlu menyentuh kode. Dengan begitu, situs ini tidak hanya menjadi tugas proyek, tetapi juga benar-benar bisa dipakai sebagai arsip belajar jangka panjang.
+	
+	% ---------------- 2 ----------------
+	\section{Tujuan Pembuatan Web}
+	
+	Pembuatan Koko's Homepage punya tujuan umum, yaitu menyediakan satu tempat yang terstruktur, mudah dikelola, dan nyaman diakses untuk menyimpan materi matematika dan olimpiade. Dari tujuan umum itu, saya menurunkan empat tujuan khusus berikut.
+	
+	\begin{enumerate}[leftmargin=*]
+		\item \textbf{Memusatkan arsip pembelajaran matematika.} Menyediakan satu repositori untuk buku referensi olimpiade (Teori Bilangan, Aljabar, Geometri, Kombinatorika, dan Problem Solving) serta arsip kuliah yang dikelompokkan menurut semester dan jenis dokumen (buku, PPT, soal ujian, dan latihan soal). Dengan pengelompokan ini, pengunjung tidak perlu menelusuri banyak tautan terpisah. Cukup memilih topik atau menekan filter, dan daftar materi yang relevan langsung muncul.
+		\item \textbf{Memudahkan pengelolaan konten.} Membangun backend sendiri dengan modul bawaan Node.js agar admin bisa mengunggah dokumen PDF/PPT, gambar sampul, atau menautkan Google Drive lewat panel admin, tanpa menyentuh kode HTML. Panel ini dilindungi dengan login, sehingga hanya pemilik situs yang dapat menambah atau menghapus materi. Tujuannya agar memperbarui isi situs terasa semudah mengisi formulir.
+		\item \textbf{Menampilkan portofolio dan CV digital.} Memuat profil akademik, riwayat pendidikan, pengalaman membina olimpiade, daftar proyek, dan prestasi dalam satu halaman yang rapi. CV ini dibuat dengan tata letak cetak khusus sehingga bisa langsung dicetak atau disimpan sebagai PDF, misalnya untuk keperluan beasiswa, lomba, atau melamar kegiatan akademik.
+		\item \textbf{Membuka ruang diskusi pengunjung.} Menyediakan tempat bertanya dan berdiskusi di setiap halaman materi lewat komentar Disqus, yang sudah disesuaikan dengan \textit{Content Security Policy}. Setiap halaman punya utas diskusi sendiri, sehingga pertanyaan tentang satu topik tidak tercampur dengan topik lain. Dengan fitur ini, situs berfungsi bukan hanya sebagai tempat mengunduh, tetapi juga sebagai tempat belajar bersama.
+	\end{enumerate}
+	
+	Selain keempat tujuan tersebut, proyek ini juga menjadi sarana bagi saya untuk berlatih menerapkan konsep pengembangan web secara utuh, mulai dari perancangan antarmuka yang responsif, pembuatan REST API, penyimpanan data, sampai penerapan keamanan dasar seperti sanitasi teks, pembatasan percobaan login, dan perlindungan jalur direktori. Hasil akhirnya diharapkan bermanfaat bagi siswa binaan olimpiade, teman-teman mahasiswa, dan siapa pun yang membutuhkan referensi matematika yang tertata.
+	
+	% ---------------- 3 ----------------
+	\section{Desain Web}
+	
+	\subsection{Arsitektur Sistem dan Struktur Berkas}
+	
+	Aplikasi ini memakai arsitektur klien-server yang dijalankan secara daring (\textit{online}) agar dapat diakses langsung melalui peramban dari berbagai perangkat. Sisi klien ditulis dengan HTML5, CSS3, dan JavaScript, sedangkan sisi server berupa server HTTP berbasis Node.js (\texttt{server.js}). Metadata buku dan materi disimpan di berkas JSON (\texttt{data/db.json}) dengan mekanisme penulisan atomik untuk mencegah kerusakan data.
+	
+	\begin{table}[h]
+		\centering
+		\small
+		\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.2cm} p{2.6cm} L@{}}
+			\toprule
+			\textbf{Berkas / Direktori} & \textbf{Peran} & \textbf{Fungsi} \\
+			\midrule
+			\texttt{server.js} & Backend dan API & Melayani berkas statis, mengatur sesi login admin (scrypt dan cookie HttpOnly), mengelola REST API materi (\texttt{/api/items}), menyimpan unggahan berkas (maksimal 25 MB), dan menetapkan header keamanan CSP. \\
+			\texttt{public/index.html} & Antarmuka pengunjung & Aplikasi satu halaman (SPA) dengan menu Beranda, Olimpiade, Kuliah (dengan filter interaktif), Proyek, dan CV siap cetak. Di dalamnya ada juga pengalih tema terang/gelap, pemuat data dinamis, dan komentar Disqus. \\
+			\texttt{public/admin.html} & Dashboard admin & Halaman terproteksi untuk menambah atau mengunggah materi, menghapus item, dan mengganti kata sandi admin. \\
+			\texttt{public/uploads/} dan \texttt{cover/} & Penyimpanan media & Menyimpan dokumen PDF/PPT/ZIP hasil unggahan dan gambar sampul buku. \\
+			\texttt{data/db.json} dan \texttt{admin.json} & Basis data & Menyimpan daftar metadata buku/kuliah, serta kata sandi admin dalam bentuk hash. \\
+			\bottomrule
+		\end{tabularx}
+		\caption{Struktur berkas dan peran masing-masing komponen}
+	\end{table}
+	
+	\subsection{Rancangan Antarmuka (UI/UX)}
+	
+	\subsection{Rancangan Antarmuka (UI/UX)}
+	
+	\textbf{Tata letak dua kolom yang responsif.} Layar dibagi dengan CSS Grid. Di sisi kiri ada sidebar berisi foto profil, bio singkat, afiliasi Universitas Negeri Malang, dan tautan kontak sosial. Di sisi kanan ada area konten yang berubah sesuai menu. Pada layar ponsel (lebar $\leq 800$ px), tata letak otomatis menjadi satu kolom.
+	
+	\textbf{Tampilan visual dan tema.} Latar belakangnya memadukan gradasi radial yang lembut, pola titik tipis seperti kertas grafik matematika, serta ornamen simbol-simbol matematika ($\pi$, $\Sigma$, $\partial$, $\infty$). Bilah navigasi memakai efek kaca buram (\textit{glassmorphism}), dan tersedia mode terang maupun mode gelap.
+	
+	\textbf{Fitur interaktif beranda.} Halaman utama dilengkapi kolom pencarian cepat untuk mencari buku atau soal, teks topik dinamis, serta widget \textit{Soal Pemanasan} harian yang memungkinkan pengunjung mengetik jawaban, memeriksa hasil, melihat pembahasan, dan mengganti soal secara langsung.
+	
+	\textbf{Keamanan.} Aplikasi ini menerapkan sanitasi teks untuk mencegah XSS, pembatasan percobaan login (\textit{rate limiting}), pengecekan asal permintaan (\textit{Same-Origin}) untuk mencegah CSRF, dan perlindungan jalur direktori (\textit{Path Traversal Guard}).
+	
+	% ---------------- 4 ----------------
+	\section{Screenshot Hasil Akhir Setiap Halaman}
+	
+	Berikut dokumentasi visual setiap halaman dan fitur utama Koko's Homepage.
+	\begin{kotakgambar}{Gambar 4.1 --- Panel Admin (form unggah materi dan manajemen daftar buku)}
+		\includegraphics[width=\linewidth]{panel admin.png}.
+	\end{kotakgambar}
+	
+	\begin{kotakgambar}{Gambar 4.2 --- Halaman Beranda}
+	\includegraphics[width=\linewidth]{beranda.png}.
+	\end{kotakgambar}
+	
+	\begin{kotakgambar}{Gambar 4.3 --- Halaman Olimpiade dan sub-topik buku (Teori Bilangan, Aljabar, Geometri, Kombinatorika, Problem Solving)}
+	\includegraphics[width=\linewidth]{buku.png}.
+	\end{kotakgambar}
+	
+	\begin{kotakgambar}{Gambar 4.4 --- Halaman Kuliah dengan filter semester dan jenis dokumen}
+		\includegraphics[width=\linewidth]{kuliah.png}.
+	\end{kotakgambar}
+	
+	\begin{kotakgambar}{Gambar 4.5 --- Halaman Proyek dan halaman CV (siap cetak)}
+		\includegraphics[width=\linewidth]{CV.png}.
+	\end{kotakgambar}
+	
+	% ---------------- 5 ----------------
+	\section{Penjelasan dan Petunjuk Penggunaan Web}
+	
+	\subsection{Cara Mengakses Website}
+	
+	\begin{enumerate}[leftmargin=*]
+		\item Pastikan perangkat (komputer maupun ponsel) terhubung ke jaringan internet.
+		\item Buka peramban dan akses alamat situs utama untuk melihat halaman pengunjung tanpa perlu memasang perangkat lunak tambahan.
+		\item Untuk pengelola situs, tambahkan akhiran \texttt{/admin} pada alamat situs utama, lalu masuk menggunakan kata sandi administrator.
+	\end{enumerate}
+	
+	\subsection{Fungsi Setiap Menu dan Fitur}
+	
+	\begin{table}[h]
+		\centering
+		\small
+		\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.4cm} L@{}}
+			\toprule
+			\textbf{Menu / Komponen} & \textbf{Fungsi dan cara penggunaan} \\
+			\midrule
+			Sidebar profil dan kontak & Menampilkan identitas pembuat web dan afiliasinya, serta tautan ke Email, GitHub, Facebook, Instagram, dan WhatsApp. Sidebar ini muncul di semua halaman. \\
+			Beranda & Halaman pembuka berisi ringkasan profil, tombol pintasan ke koleksi buku dan proyek, serta kartu navigasi ke empat bagian utama situs. \\
+			Olimpiade & Menampilkan lima topik olimpiade matematika (Teori Bilangan, Aljabar, Geometri, Kombinatorika, Problem Solving). Saat satu topik diklik, muncul katalog kartu buku lengkap dengan sampul, penulis, dan tombol Lihat untuk membuka berkas PDF atau Google Drive. \\
+			Kuliah & Menampilkan arsip materi kuliah. Pengunjung bisa menekan chip filter Semester (Semester 1, 2, dst., atau Di luar jurusan) dan Jenis (Buku, PPT, Soal Ujian, Exercise) untuk menyaring daftar langsung tanpa memuat ulang halaman. \\
+			Proyek & Menampilkan dokumentasi karya dan proyek yang sedang atau sudah dikerjakan pemilik situs. \\
+			CV & Menampilkan CV terstruktur: riwayat pendidikan, pengalaman mengajar dan tim soal olimpiade, proyek, prestasi lomba, serta keahlian. Tombol Simpan sebagai PDF akan memunculkan tata letak cetak yang bersih secara otomatis. \\
+			Tombol tema & Ada di pojok kanan atas bilah navigasi, untuk berpindah antara mode terang dan mode gelap. Pilihan tema tersimpan otomatis di peramban. \\
+			Kolom komentar (Disqus) & Muncul di bagian bawah setiap halaman konten (kecuali Beranda), dengan utas diskusi terpisah untuk tiap halaman sehingga pengunjung bisa bertanya soal materi terkait. \\
+			Panel admin (\texttt{/admin}) & Dipakai pemilik web setelah login dengan kata sandi admin. Di sini admin bisa menambah buku atau materi baru (memilih halaman tujuan, mengisi judul dan penulis, mengunggah sampul, mengunggah file PDF/PPT atau menautkan Google Drive), menghapus item, dan mengganti kata sandi. \\
+			\bottomrule
+		\end{tabularx}
+		\caption{Fungsi masing-masing menu dan fitur}
+	\end{table}
+	
+	\end{document}

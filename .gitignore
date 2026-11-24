@@ -1,3 +1,19 @@
+node_modules/
 data/
 public/uploads/
 .env
+.env.local
+.vercel/
+
+# File sampingan LaTeX
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.fls
+*.fdb_latexmk
+*.bbl
+*.blg
+*.bcf
+*.run.xml

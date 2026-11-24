@@ -5,8 +5,9 @@ const path = require('path');
 const crypto = require('crypto');
 
 // ---------- Konfigurasi ----------
+const IS_VERCEL = !!process.env.VERCEL;
 const PORT = Number(process.env.PORT) || 3000;
-const HOST = process.env.HOST || '127.0.0.1';
+const HOST = process.env.HOST || (IS_VERCEL ? '0.0.0.0' : '127.0.0.1');
 const PUBLIC_DIR = path.join(__dirname, 'public');
 const UPLOAD_DIR = path.join(PUBLIC_DIR, 'uploads');
 const DATA_DIR = path.join(__dirname, 'data');
@@ -14,25 +15,42 @@ const DB_FILE = path.join(DATA_DIR, 'db.json');
 const ADMIN_FILE = path.join(DATA_DIR, 'admin.json');
 const SECRET_FILE = path.join(DATA_DIR, 'secret.txt');
 
-const MAX_BODY = 20 * 1024;             // 20 KB untuk request biasa
-const MAX_UPLOAD_BODY = 25 * 1024 * 1024; // 25 MB untuk upload file & cover
-const SESSION_MS = 8 * 3600 * 1000;     // Sesi admin 8 jam
+const MAX_BODY = 20 * 1024;                 // 20 KB untuk request biasa
+// Lokal: upload base64 sampai 25 MB. Vercel: batas body function 4,5 MB (file besar lewat client upload).
+const MAX_UPLOAD_BODY = IS_VERCEL ? 4 * 1024 * 1024 : 25 * 1024 * 1024;
+const SESSION_MS = 8 * 3600 * 1000;         // Sesi admin 8 jam
+const COOKIE_FLAGS = IS_VERCEL ? '; Secure' : '';
 
-fs.mkdirSync(DATA_DIR, { recursive: true });
-fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+// Layanan eksternal (hanya dipakai di Vercel)
+let redis = null, blob = null, blobClient = null;
+if (IS_VERCEL) {
+  const { Redis } = require('@upstash/redis');
+  redis = new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN
+  });
+  blob = require('@vercel/blob');
+  blobClient = require('@vercel/blob/client');
+} else {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+}
 
-// ---------- Penyimpanan Data (JSON Atomik) ----------
+// ---------- Penyimpanan Data ----------
+const DB_KEY = 'koko:db';
+const normalizeDb = raw => ({
+  nextId: (raw && raw.nextId) || 1,
+  items: raw && Array.isArray(raw.items) ? raw.items : []
+});
 let db = { nextId: 1, items: [] };
-try {
-  const raw = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
-  db = {
-    nextId: raw.nextId || 1,
-    items: Array.isArray(raw.items) ? raw.items : []
-  };
-} catch (e) {
-  if (e.code !== 'ENOENT') {
-    console.error('db.json rusak, dicadangkan ke db.json.bak:', e.message);
-    try { fs.copyFileSync(DB_FILE, DB_FILE + '.bak'); } catch (_) {}
+
+if (!IS_VERCEL) {
+  try { db = normalizeDb(JSON.parse(fs.readFileSync(DB_FILE, 'utf8'))); }
+  catch (e) {
+    if (e.code !== 'ENOENT') {
+      console.error('db.json rusak, dicadangkan ke db.json.bak:', e.message);
+      try { fs.copyFileSync(DB_FILE, DB_FILE + '.bak'); } catch (_) {}
+    }
   }
 }
 
@@ -47,24 +65,43 @@ function flush() {
   fs.renameSync(tmp, DB_FILE);
 }
 
-// ---------- Rahasia Server & Akun Admin ----------
-let SECRET;
-try { SECRET = fs.readFileSync(SECRET_FILE, 'utf8').trim(); }
-catch (_) { SECRET = crypto.randomBytes(32).toString('hex'); fs.writeFileSync(SECRET_FILE, SECRET); }
+// Di Vercel, data dibaca ulang dari Redis di setiap permintaan API
+async function loadDb() {
+  if (!IS_VERCEL) return;
+  db = normalizeDb(await redis.get(DB_KEY));
+}
+async function saveDb() {
+  if (IS_VERCEL) await redis.set(DB_KEY, db);
+  else save();
+}
 
+// ---------- Rahasia Server & Akun Admin ----------
 const hashPw = (pw, salt) => crypto.scryptSync(String(pw), salt, 64).toString('hex');
-let admin;
-try { admin = JSON.parse(fs.readFileSync(ADMIN_FILE, 'utf8')); }
-catch (_) {
-  const pw = process.env.ADMIN_PASSWORD || crypto.randomBytes(9).toString('base64url');
-  const salt = crypto.randomBytes(16).toString('hex');
-  admin = { salt, hash: hashPw(pw, salt) };
-  fs.writeFileSync(ADMIN_FILE, JSON.stringify(admin));
-  console.log('\n============================================================');
-  console.log(' Akun admin dibuat. Password awal (catat, hanya tampil sekali):');
-  console.log('   ' + pw);
-  console.log(' Ganti di panel admin > Pengaturan. Lupa? Hapus data/admin.json lalu restart.');
-  console.log('============================================================\n');
+let SECRET, admin;
+
+if (IS_VERCEL) {
+  SECRET = process.env.SESSION_SECRET;
+  if (!SECRET || !process.env.ADMIN_PASSWORD) {
+    throw new Error('SESSION_SECRET dan ADMIN_PASSWORD wajib diisi di Environment Variables Vercel');
+  }
+  const salt = crypto.createHash('sha256').update(SECRET).digest('hex').slice(0, 32);
+  admin = { salt, hash: hashPw(process.env.ADMIN_PASSWORD, salt) };
+} else {
+  try { SECRET = fs.readFileSync(SECRET_FILE, 'utf8').trim(); }
+  catch (_) { SECRET = crypto.randomBytes(32).toString('hex'); fs.writeFileSync(SECRET_FILE, SECRET); }
+
+  try { admin = JSON.parse(fs.readFileSync(ADMIN_FILE, 'utf8')); }
+  catch (_) {
+    const pw = process.env.ADMIN_PASSWORD || crypto.randomBytes(9).toString('base64url');
+    const salt = crypto.randomBytes(16).toString('hex');
+    admin = { salt, hash: hashPw(pw, salt) };
+    fs.writeFileSync(ADMIN_FILE, JSON.stringify(admin));
+    console.log('\n============================================================');
+    console.log(' Akun admin dibuat. Password awal (catat, hanya tampil sekali):');
+    console.log('   ' + pw);
+    console.log(' Ganti di panel admin > Pengaturan. Lupa? Hapus data/admin.json lalu restart.');
+    console.log('============================================================\n');
+  }
 }
 
 function checkPw(pw) {
@@ -73,8 +110,20 @@ function checkPw(pw) {
   return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
+// Sesi stateless: cookie berisi waktu kedaluwarsa + tanda tangan HMAC
+function signSession(exp) {
+  const payload = String(exp);
+  return payload + '.' + crypto.createHmac('sha256', SECRET).update(payload).digest('hex');
+}
+function verifySession(token) {
+  const [payload, sig] = String(token || '').split('.');
+  if (!payload || !sig) return false;
+  const expect = crypto.createHmac('sha256', SECRET).update(payload).digest('hex');
+  const a = Buffer.from(sig, 'hex'), b = Buffer.from(expect, 'hex');
+  return a.length === b.length && crypto.timingSafeEqual(a, b) && Number(payload) > Date.now();
+}
+
 // ---------- Utilitas & Keamanan ----------
-const sessions = new Map();
 const buckets = new Map();
 function limited(key, max, windowMs) {
   const now = Date.now();
@@ -86,10 +135,11 @@ function limited(key, max, windowMs) {
 setInterval(() => {
   const now = Date.now();
   for (const [k, arr] of buckets) if (!arr.length || now - arr[arr.length - 1] > 3600e3) buckets.delete(k);
-  for (const [t, s] of sessions) if (s.exp < now) sessions.delete(t);
 }, 600e3).unref();
 
-const clientIp = req => req.socket.remoteAddress || 'unknown';
+const clientIp = req =>
+  (IS_VERCEL && String(req.headers['x-forwarded-for'] || '').split(',')[0].trim()) ||
+  req.socket.remoteAddress || 'unknown';
 function clean(s, max) {
   return String(s ?? '')
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, '')
@@ -97,7 +147,7 @@ function clean(s, max) {
 }
 const httpErr = (status, message) => Object.assign(new Error(message), { status });
 
-// CSP mengizinkan Disqus serta font Google
+// CSP mengizinkan Disqus, font Google, dan Vercel Blob (upload langsung dari browser)
 const SEC_HEADERS = {
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'DENY',
@@ -108,7 +158,7 @@ const SEC_HEADERS = {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://c.disquscdn.com; " +
     "font-src 'self' https://fonts.gstatic.com https://c.disquscdn.com; " +
     "img-src 'self' data: https: http:; " +
-    "connect-src 'self' https://*.disqus.com https://links.services.disqus.com; " +
+    "connect-src 'self' https://*.disqus.com https://links.services.disqus.com https://vercel.com https://*.vercel-storage.com; " +
     "frame-src https://disqus.com https://*.disqus.com; " +
     "form-action 'self'; base-uri 'none'; frame-ancestors 'none'"
 };
@@ -130,7 +180,7 @@ function readJson(req, limit = MAX_BODY) {
       else chunks.push(c);
     });
     req.on('end', () => {
-      if (tooBig) return reject(httpErr(413, 'Ukuran file terlalu besar (maksimal 25 MB)'));
+      if (tooBig) return reject(httpErr(413, `Ukuran file terlalu besar (maksimal ${Math.floor(limit / 1048576)} MB)`));
       if (!chunks.length) return resolve({});
       try { resolve(JSON.parse(Buffer.concat(chunks).toString('utf8'))); }
       catch (_) { reject(httpErr(400, 'Format JSON tidak valid')); }
@@ -156,16 +206,15 @@ function sameOrigin(req) {
 
 function requireAdmin(req) {
   const sid = parseCookies(req.headers.cookie).sid;
-  const s = sid && sessions.get(sid);
-  if (!s || s.exp < Date.now()) throw httpErr(401, 'Belum login');
+  if (!verifySession(sid)) throw httpErr(401, 'Belum login');
   if (req.method !== 'GET') {
     if (req.headers['x-requested-with'] !== 'fetch' || !sameOrigin(req)) throw httpErr(403, 'Permintaan ditolak');
   }
   return sid;
 }
 
-// Menyimpan file base64 dari browser ke folder public/uploads/
-function saveBase64File(dataUrl, allowedExts, prefix) {
+// Menyimpan file base64 dari browser (lokal: ke public/uploads/, Vercel: ke Vercel Blob)
+async function saveBase64File(dataUrl, allowedExts, prefix) {
   if (!dataUrl || typeof dataUrl !== 'string') return '';
   const match = dataUrl.match(/^data:([a-zA-Z0-9/+.-]+);base64,(.+)$/);
   if (!match) return '';
@@ -186,25 +235,47 @@ function saveBase64File(dataUrl, allowedExts, prefix) {
   }
   const buf = Buffer.from(match[2], 'base64');
   const filename = `${prefix}-${Date.now()}-${crypto.randomBytes(4).toString('hex')}${ext}`;
+  if (IS_VERCEL) {
+    const b = await blob.put('uploads/' + filename, buf, { access: 'public', contentType: mime });
+    return b.url; // URL lengkap https://...
+  }
   fs.writeFileSync(path.join(UPLOAD_DIR, filename), buf);
   return 'uploads/' + filename;
 }
 
-function removeUploadedFile(relPath) {
-  if (!relPath || !relPath.startsWith('uploads/')) return;
+async function removeUploadedFile(relPath) {
+  if (!relPath) return;
+  if (/^https?:\/\//i.test(relPath)) {
+    // Hanya hapus file milik Vercel Blob; link Google Drive dibiarkan
+    if (IS_VERCEL && relPath.includes('.blob.vercel-storage.com')) {
+      try { await blob.del(relPath); } catch (_) {}
+    }
+    return;
+  }
+  if (!relPath.startsWith('uploads/')) return;
   const full = path.normalize(path.join(PUBLIC_DIR, relPath));
   if (full.startsWith(UPLOAD_DIR + path.sep)) {
     try { fs.unlinkSync(full); } catch (_) {}
   }
 }
 
+// URL Blob publik yang sah (hasil client upload)
+const isBlobUrl = u => /^https:\/\/[a-z0-9-]+\.public\.blob\.vercel-storage\.com\//i.test(String(u || ''));
+
 // ---------- API ----------
 async function handleApi(req, res, url) {
   const p = url.pathname, m = req.method;
 
+  await loadDb();
+
   // --- Publik: ambil daftar materi / buku ---
   if (p === '/api/items' && m === 'GET') {
     return send(res, 200, { items: db.items });
+  }
+
+  // --- Publik: info konfigurasi untuk halaman admin ---
+  if (p === '/api/config' && m === 'GET') {
+    return send(res, 200, { clientUpload: IS_VERCEL });
   }
 
   // --- Admin: login ---
@@ -213,21 +284,53 @@ async function handleApi(req, res, url) {
     if (limited('l:' + clientIp(req), 8, 10 * 60e3)) throw httpErr(429, 'Terlalu banyak percobaan. Coba 10 menit lagi.');
     const b = await readJson(req);
     if (!checkPw(b.password ?? '')) throw httpErr(401, 'Password salah');
-    const sid = crypto.randomBytes(24).toString('hex');
-    sessions.set(sid, { exp: Date.now() + SESSION_MS });
-    const isHttps = req.headers['x-forwarded-proto'] === 'https';
-    return send(res, 200, { ok: true }, { 'Set-Cookie': `sid=${sid}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${SESSION_MS / 1000}${isHttps ? '; Secure' : ''}` });
+    const sid = signSession(Date.now() + SESSION_MS);
+    return send(res, 200, { ok: true }, { 'Set-Cookie': `sid=${sid}; HttpOnly; SameSite=Strict; Path=/; Max-Age=${SESSION_MS / 1000}${COOKIE_FLAGS}` });
+  }
+
+  // --- Token upload langsung browser -> Vercel Blob ---
+  // Harus berada SEBELUM blok /api/admin/ karena Vercel memanggil balik endpoint ini tanpa cookie.
+  if (p === '/api/admin/blob-upload' && m === 'POST') {
+    if (!IS_VERCEL) throw httpErr(400, 'Client upload hanya aktif di Vercel');
+    const body = await readJson(req);
+    // Permintaan token wajib dari admin yang sudah login.
+    // Panggilan balik dari Vercel diverifikasi tanda tangannya oleh SDK.
+    if (body.type === 'blob.generate-client-token') {
+      if (!verifySession(parseCookies(req.headers.cookie).sid) || !sameOrigin(req)) {
+        throw httpErr(401, 'Belum login');
+      }
+    }
+    const json = await blobClient.handleUpload({
+      body,
+      request: req,
+      onBeforeGenerateToken: async (pathname) => {
+        if (!/^uploads\/[a-z0-9_-]+\.(pdf|pptx?|zip|jpe?g|png|webp)$/i.test(pathname)) {
+          throw new Error('Nama atau tipe file tidak diizinkan');
+        }
+        return {
+          allowedContentTypes: [
+            'application/pdf',
+            'application/vnd.ms-powerpoint',
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'application/zip', 'application/x-zip-compressed',
+            'image/jpeg', 'image/png', 'image/webp'
+          ],
+          maximumSizeInBytes: 100 * 1024 * 1024, // 100 MB
+          addRandomSuffix: true
+        };
+      },
+      onUploadCompleted: async () => {}
+    });
+    return send(res, 200, json);
   }
 
   // --- Admin: endpoint terproteksi ---
   if (p.startsWith('/api/admin/')) {
-    const sid = requireAdmin(req);
+    requireAdmin(req);
 
     if (p === '/api/admin/me' && m === 'GET') return send(res, 200, { ok: true });
     if (p === '/api/admin/logout' && m === 'POST') {
-      sessions.delete(sid);
-      const isHttps = req.headers['x-forwarded-proto'] === 'https';
-      return send(res, 200, { ok: true }, { 'Set-Cookie': `sid=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0${isHttps ? '; Secure' : ''}` });
+      return send(res, 200, { ok: true }, { 'Set-Cookie': `sid=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0${COOKIE_FLAGS}` });
     }
 
     // Ambil semua item di panel admin
@@ -253,10 +356,13 @@ async function handleApi(req, res, url) {
       const jenis = clean(b.jenis, 20);      // buku, ppt, soal, exercise
       const subject = clean(b.subject, 100); // Mata kuliah (mis. Kalkulus 1)
 
-      // Tangani file utama (upload file ATAU link eksternal)
+      // File utama: URL Blob (client upload) ATAU base64 ATAU link eksternal
       let fileUrl = '';
-      if (b.fileData) {
-        fileUrl = saveBase64File(b.fileData, ['.pdf', '.ppt', '.pptx', '.zip'], 'doc');
+      if (b.fileBlobUrl) {
+        if (!isBlobUrl(b.fileBlobUrl)) throw httpErr(400, 'URL file tidak valid');
+        fileUrl = clean(b.fileBlobUrl, 500);
+      } else if (b.fileData) {
+        fileUrl = await saveBase64File(b.fileData, ['.pdf', '.ppt', '.pptx', '.zip'], 'doc');
       } else {
         fileUrl = clean(b.externalUrl, 500);
         if (fileUrl && !/^https?:\/\//i.test(fileUrl)) {
@@ -265,10 +371,13 @@ async function handleApi(req, res, url) {
       }
       if (!fileUrl) throw httpErr(400, 'Wajib mengunggah file atau mengisi link Google Drive');
 
-      // Tangani gambar sampul (opsional)
+      // Gambar sampul (opsional)
       let coverUrl = '';
-      if (b.coverData) {
-        coverUrl = saveBase64File(b.coverData, ['.jpg', '.png', '.webp'], 'cov');
+      if (b.coverBlobUrl) {
+        if (!isBlobUrl(b.coverBlobUrl)) throw httpErr(400, 'URL sampul tidak valid');
+        coverUrl = clean(b.coverBlobUrl, 500);
+      } else if (b.coverData) {
+        coverUrl = await saveBase64File(b.coverData, ['.jpg', '.png', '.webp'], 'cov');
       }
 
       const item = {
@@ -286,7 +395,7 @@ async function handleApi(req, res, url) {
         createdAt: new Date().toISOString()
       };
       db.items.push(item);
-      save();
+      await saveDb();
       return send(res, 201, { ok: true, item });
     }
 
@@ -297,14 +406,15 @@ async function handleApi(req, res, url) {
       const idx = db.items.findIndex(x => x.id === id);
       if (idx === -1) throw httpErr(404, 'Data tidak ditemukan');
       const [removed] = db.items.splice(idx, 1);
-      removeUploadedFile(removed.fileUrl);
-      removeUploadedFile(removed.coverUrl);
-      save();
+      await removeUploadedFile(removed.fileUrl);
+      await removeUploadedFile(removed.coverUrl);
+      await saveDb();
       return send(res, 200, { ok: true });
     }
 
     // Ganti password admin
     if (p === '/api/admin/password' && m === 'POST') {
+      if (IS_VERCEL) throw httpErr(400, 'Di Vercel, ganti password lewat Environment Variable ADMIN_PASSWORD lalu Redeploy');
       if (limited('pw:' + clientIp(req), 8, 10 * 60e3)) throw httpErr(429, 'Terlalu banyak percobaan');
       const b = await readJson(req);
       if (!checkPw(b.current ?? '')) throw httpErr(403, 'Password saat ini salah');
@@ -369,7 +479,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, HOST, () => {
-  console.log(`Server berjalan di  http://${HOST}:${PORT}`);
-  console.log(`Panel admin di      http://${HOST}:${PORT}/admin`);
+  console.log(`Server berjalan di  http://localhost:${PORT}`);
+  console.log(`Panel admin di      http://localhost:${PORT}/admin`);
 });
 for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, () => { flush(); process.exit(0); });
