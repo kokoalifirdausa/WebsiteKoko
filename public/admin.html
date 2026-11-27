@@ -85,6 +85,13 @@
   .msg { padding: 12px 14px; border-radius: 8px; margin-bottom: 16px; font-size: .92rem; }
   .msg.ok { background: #dcfce7; color: #166534; }
   .msg.err { background: #fee2e2; color: #991b1b; }
+  .btn.small { padding: 6px 12px; font-size: .85rem; }
+  .row-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  .modal { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: flex; align-items: flex-start; justify-content: center; padding: 40px 16px; overflow-y: auto; z-index: 50; }
+  .modal-box { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 24px; width: 100%; max-width: 720px; }
+  .hint { font-size: .85rem; color: var(--muted); }
+  .check { display: flex; align-items: center; gap: 8px; font-weight: 400; cursor: pointer; }
+  .check input { width: auto; }
   [hidden] { display: none !important; }
 </style>
 </head>
@@ -245,6 +252,108 @@
         <button type="button" class="btn danger" id="logoutBtn">Keluar dari Panel Admin</button>
       </div>
     </section>
+  </div>
+</div>
+
+<!-- Modal Edit Materi -->
+<div id="editModal" class="modal" hidden>
+  <div class="modal-box">
+    <h2>Edit Materi</h2>
+    <div id="editMsg" class="msg err" hidden></div>
+    <form id="editForm" class="grid">
+      <div class="field">
+        <label for="eSection">Halaman Tujuan</label>
+        <select id="eSection">
+          <option value="olimpiade">Olimpiade</option>
+          <option value="kuliah">Kuliah</option>
+        </select>
+      </div>
+
+      <div class="field" id="eTopicField">
+        <label for="eTopic">Topik Olimpiade</label>
+        <select id="eTopic">
+          <option value="teobil">Teori Bilangan</option>
+          <option value="aljabar">Aljabar</option>
+          <option value="geo">Geometri</option>
+          <option value="kombin">Kombinatorika</option>
+          <option value="problem-solving">Problem Solving</option>
+        </select>
+      </div>
+
+      <div class="field" id="eSemField" hidden>
+        <label for="eSem">Semester</label>
+        <select id="eSem">
+          <option value="1">Semester 1</option>
+          <option value="2">Semester 2</option>
+          <option value="3">Semester 3</option>
+          <option value="4">Semester 4</option>
+          <option value="luar">Di luar jurusan</option>
+        </select>
+      </div>
+
+      <div class="field" id="eJenisField" hidden>
+        <label for="eJenis">Jenis File</label>
+        <select id="eJenis">
+          <option value="buku">Buku</option>
+          <option value="ppt">PPT</option>
+          <option value="soal">Soal Ujian</option>
+          <option value="exercise">Exercise</option>
+        </select>
+      </div>
+
+      <div class="field" id="eSubjectField" hidden>
+        <label for="eSubject">Nama Mata Kuliah</label>
+        <input type="text" id="eSubject">
+      </div>
+
+      <div class="field">
+        <label for="eTitle">Judul Buku / Materi *</label>
+        <input type="text" id="eTitle" required>
+      </div>
+
+      <div class="field">
+        <label for="eAuthor">Penulis / Dosen</label>
+        <input type="text" id="eAuthor">
+      </div>
+
+      <div class="field">
+        <label for="eBadge">Singkatan Sampul</label>
+        <input type="text" id="eBadge" maxlength="10">
+      </div>
+
+      <div class="field full">
+        <label>File saat ini</label>
+        <a id="eCurrentFile" href="#" target="_blank" style="color: var(--link); word-break: break-all;">Buka file</a>
+        <span class="hint">Biarkan kolom di bawah kosong jika file tidak ingin diganti.</span>
+      </div>
+
+      <div class="field">
+        <label for="eDocFile">Ganti dengan berkas baru (opsional)</label>
+        <input type="file" id="eDocFile" accept=".pdf,.ppt,.pptx,.zip">
+      </div>
+
+      <div class="field">
+        <label for="eExternalUrl">Atau ganti dengan link (opsional)</label>
+        <input type="url" id="eExternalUrl" placeholder="https://drive.google.com/file/d/...">
+      </div>
+
+      <div class="field">
+        <label>Sampul saat ini</label>
+        <a id="eCurrentCover" href="#" target="_blank" style="color: var(--link);">Lihat sampul</a>
+        <span id="eNoCover" class="hint">Belum ada gambar sampul.</span>
+      </div>
+
+      <div class="field">
+        <label for="eCoverFile">Ganti sampul (opsional, JPG/PNG)</label>
+        <input type="file" id="eCoverFile" accept="image/jpeg,image/png,image/webp">
+        <label class="check" id="eRemoveCoverWrap"><input type="checkbox" id="eRemoveCover"> Hapus sampul yang ada</label>
+      </div>
+
+      <div class="field full" style="flex-direction: row; gap: 10px;">
+        <button type="submit" class="btn" id="eSubmitBtn">Simpan Perubahan</button>
+        <button type="button" class="btn ghost" id="eCancelBtn">Batal</button>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -421,9 +530,11 @@
   });
 
   // Muat daftar materi
+  let currentItems = [];
   const topicLabels = { teobil: 'Teori Bilangan', aljabar: 'Aljabar', geo: 'Geometri', kombin: 'Kombinatorika', 'problem-solving': 'Problem Solving' };
   async function loadItems() {
     const { items } = await api('/api/admin/items');
+    currentItems = items;
     document.getElementById('itemCount').textContent = items.length;
     const list = document.getElementById('itemsList');
     if (!items.length) {
@@ -444,7 +555,10 @@
               <a href="${esc(it.fileUrl)}" target="_blank" style="color: var(--link);">Buka File &nearr;</a>
             </div>
           </div>
-          <button type="button" class="btn danger" onclick="delItem(${it.id})">Hapus</button>
+          <div class="row-actions">
+            <button type="button" class="btn ghost small" onclick="editItem(${it.id})">Edit</button>
+            <button type="button" class="btn danger" onclick="delItem(${it.id})">Hapus</button>
+          </div>
         </div>
       `;
     }).join('');
@@ -455,6 +569,109 @@
     await api('/api/admin/items/' + id, { method: 'DELETE' });
     loadItems();
   };
+
+  // ----- Edit materi -----
+  const $ = id => document.getElementById(id);
+  let editId = null;
+
+  function syncEditSection() {
+    const isKuliah = $('eSection').value === 'kuliah';
+    $('eTopicField').hidden = isKuliah;
+    $('eSemField').hidden = !isKuliah;
+    $('eJenisField').hidden = !isKuliah;
+    $('eSubjectField').hidden = !isKuliah;
+  }
+  $('eSection').addEventListener('change', syncEditSection);
+
+  window.editItem = id => {
+    const it = currentItems.find(x => x.id === id);
+    if (!it) return;
+    editId = id;
+    $('editMsg').hidden = true;
+    $('eSection').value = it.section;
+    $('eTopic').value = it.topic || 'teobil';
+    $('eSem').value = it.sem || '1';
+    $('eJenis').value = it.jenis || 'buku';
+    $('eSubject').value = it.subject || '';
+    $('eTitle').value = it.title || '';
+    $('eAuthor').value = it.author || '';
+    $('eBadge').value = it.badge || '';
+    $('eCurrentFile').href = it.fileUrl;
+    $('eCurrentFile').textContent = it.fileUrl;
+    $('eCurrentCover').hidden = !it.coverUrl;
+    $('eCurrentCover').href = it.coverUrl || '#';
+    $('eNoCover').hidden = !!it.coverUrl;
+    $('eRemoveCoverWrap').hidden = !it.coverUrl;
+    $('eRemoveCover').checked = false;
+    $('eDocFile').value = '';
+    $('eCoverFile').value = '';
+    $('eExternalUrl').value = '';
+    syncEditSection();
+    $('editModal').hidden = false;
+  };
+
+  const closeEdit = () => { $('editModal').hidden = true; editId = null; };
+  $('eCancelBtn').addEventListener('click', closeEdit);
+  $('editModal').addEventListener('click', e => { if (e.target === $('editModal')) closeEdit(); });
+
+  $('editForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = $('eSubmitBtn');
+    const msg = $('editMsg');
+    msg.hidden = true;
+    btn.disabled = true;
+    btn.textContent = 'Menyimpan...';
+
+    try {
+      await configReady;
+      const docFile = $('eDocFile').files[0];
+      const coverFile = $('eCoverFile').files[0];
+      const link = $('eExternalUrl').value.trim();
+      if (docFile && link) throw new Error('Pilih salah satu: berkas baru ATAU link baru, jangan keduanya');
+
+      const payload = {
+        section: $('eSection').value,
+        topic: $('eTopic').value,
+        sem: $('eSem').value,
+        jenis: $('eJenis').value,
+        subject: $('eSubject').value,
+        title: $('eTitle').value,
+        author: $('eAuthor').value,
+        badge: $('eBadge').value,
+        externalUrl: link,
+        removeCover: $('eRemoveCover').checked && !coverFile
+      };
+
+      if (clientUpload) {
+        if (docFile) {
+          btn.textContent = 'Mengunggah berkas...';
+          payload.fileBlobUrl = await uploadToBlob(docFile, 'doc', ['.pdf', '.ppt', '.pptx', '.zip']);
+        }
+        if (coverFile) {
+          btn.textContent = 'Mengunggah sampul...';
+          payload.coverBlobUrl = await uploadToBlob(coverFile, 'cov', ['.jpg', '.jpeg', '.png', '.webp']);
+        }
+      } else {
+        if (docFile) payload.fileData = await fileToBase64(docFile);
+        if (coverFile) payload.coverData = await fileToBase64(coverFile);
+      }
+
+      btn.textContent = 'Menyimpan...';
+      await api('/api/admin/items/' + editId, { method: 'PUT', body: JSON.stringify(payload) });
+      closeEdit();
+      const ok = $('formMsg');
+      ok.className = 'msg ok';
+      ok.textContent = 'Perubahan berhasil disimpan.';
+      ok.hidden = false;
+      loadItems();
+    } catch (err) {
+      msg.textContent = err.message;
+      msg.hidden = false;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Simpan Perubahan';
+    }
+  });
 
   // Ganti password
   document.getElementById('pwForm').addEventListener('submit', async e => {

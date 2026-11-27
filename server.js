@@ -300,7 +300,9 @@ async function handleApi(req, res, url) {
         throw httpErr(401, 'Belum login');
       }
     }
-    const json = await blobClient.handleUpload({
+    let json;
+    try {
+    json = await blobClient.handleUpload({
       body,
       request: req,
       onBeforeGenerateToken: async (pathname) => {
@@ -321,6 +323,10 @@ async function handleApi(req, res, url) {
       },
       onUploadCompleted: async () => {}
     });
+    } catch (e) {
+      console.error('blob-upload gagal:', e);
+      throw httpErr(400, 'Blob: ' + e.message);
+    }
     return send(res, 200, json);
   }
 
@@ -399,8 +405,65 @@ async function handleApi(req, res, url) {
       return send(res, 201, { ok: true, item });
     }
 
-    // Hapus materi & file terkait
     let mt;
+
+    // Ubah data materi (judul, kategori, dan opsional ganti file / sampul)
+    if ((mt = p.match(/^\/api\/admin\/items\/(\d+)$/)) && m === 'PUT') {
+      const id = Number(mt[1]);
+      const it = db.items.find(x => x.id === id);
+      if (!it) throw httpErr(404, 'Data tidak ditemukan');
+      const b = await readJson(req, MAX_UPLOAD_BODY);
+
+      const section = clean(b.section, 20);
+      if (!['olimpiade', 'kuliah'].includes(section)) throw httpErr(400, 'Bagian halaman tidak valid');
+      const title = clean(b.title, 150);
+      if (!title) throw httpErr(400, 'Judul wajib diisi');
+
+      const oldFile = it.fileUrl, oldCover = it.coverUrl;
+      let newFile = oldFile, newCover = oldCover;
+
+      // File utama: URL Blob > base64 > link eksternal baru > tetap yang lama
+      if (b.fileBlobUrl) {
+        if (!isBlobUrl(b.fileBlobUrl)) throw httpErr(400, 'URL file tidak valid');
+        newFile = clean(b.fileBlobUrl, 500);
+      } else if (b.fileData) {
+        newFile = await saveBase64File(b.fileData, ['.pdf', '.ppt', '.pptx', '.zip'], 'doc');
+      } else if (clean(b.externalUrl, 500)) {
+        const link = clean(b.externalUrl, 500);
+        if (!/^https?:\/\//i.test(link)) throw httpErr(400, 'Link eksternal harus diawali http:// atau https://');
+        newFile = link;
+      }
+
+      // Sampul: URL Blob > base64 > hapus sampul > tetap yang lama
+      if (b.coverBlobUrl) {
+        if (!isBlobUrl(b.coverBlobUrl)) throw httpErr(400, 'URL sampul tidak valid');
+        newCover = clean(b.coverBlobUrl, 500);
+      } else if (b.coverData) {
+        newCover = await saveBase64File(b.coverData, ['.jpg', '.png', '.webp'], 'cov');
+      } else if (b.removeCover === true) {
+        newCover = '';
+      }
+
+      it.section = section;
+      it.topic = clean(b.topic, 30);
+      it.sem = clean(b.sem, 10);
+      it.jenis = clean(b.jenis, 20);
+      it.subject = clean(b.subject, 100);
+      it.title = title;
+      it.author = clean(b.author, 150);
+      it.badge = clean(b.badge, 12) || title.slice(0, 4).toUpperCase();
+      it.fileUrl = newFile;
+      it.coverUrl = newCover;
+      it.updatedAt = new Date().toISOString();
+      await saveDb();
+
+      // Hapus file lama hanya setelah data baru tersimpan
+      if (newFile !== oldFile) await removeUploadedFile(oldFile);
+      if (newCover !== oldCover) await removeUploadedFile(oldCover);
+      return send(res, 200, { ok: true, item: it });
+    }
+
+    // Hapus materi & file terkait
     if ((mt = p.match(/^\/api\/admin\/items\/(\d+)$/)) && m === 'DELETE') {
       const id = Number(mt[1]);
       const idx = db.items.findIndex(x => x.id === id);
