@@ -223,6 +223,10 @@
 
       <div class="card">
         <h2>Daftar Materi Terunggah (<span id="itemCount">0</span>)</h2>
+        <div class="field" style="margin-bottom: 14px;">
+          <input type="search" id="itemSearch" placeholder="Cari judul, penulis, topik, semester, atau mata kuliah..." autocomplete="off" aria-label="Cari materi terunggah">
+          <span class="hint" id="itemFound" role="status" hidden></span>
+        </div>
         <div id="itemsList" class="item-list"></div>
       </div>
     </section>
@@ -536,9 +540,40 @@
     const { items } = await api('/api/admin/items');
     currentItems = items;
     document.getElementById('itemCount').textContent = items.length;
+    renderItems();
+  }
+
+  const jenisNames = { buku: 'Buku', ppt: 'PPT', soal: 'Soal Ujian', exercise: 'Exercise' };
+  const normText = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+  // Teks yang dicari: judul, penulis, singkatan, mata kuliah, dan label kategori
+  function searchText(it) {
+    const semText = it.sem === 'luar' ? 'di luar jurusan' : 'semester ' + it.sem;
+    const where = it.section === 'olimpiade'
+      ? 'olimpiade ' + (topicLabels[it.topic] || it.topic)
+      : 'kuliah ' + semText + ' ' + (jenisNames[it.jenis] || it.jenis);
+    return normText([it.title, it.author, it.badge, it.subject, where].join(' '));
+  }
+
+  function renderItems() {
     const list = document.getElementById('itemsList');
-    if (!items.length) {
+    const found = document.getElementById('itemFound');
+    const raw = document.getElementById('itemSearch').value.trim();
+    const words = normText(raw).split(/\s+/).filter(Boolean);
+
+    const items = words.length
+      ? currentItems.filter(it => { const t = searchText(it); return words.every(w => t.includes(w)); })
+      : currentItems;
+
+    found.hidden = !words.length;
+    found.textContent = 'Menampilkan ' + items.length + ' dari ' + currentItems.length + ' materi';
+
+    if (!currentItems.length) {
       list.innerHTML = '<p style="color: var(--muted); margin: 0;">Belum ada materi yang diunggah lewat panel admin.</p>';
+      return;
+    }
+    if (!items.length) {
+      list.innerHTML = '<p style="color: var(--muted); margin: 0;">Tidak ada materi yang cocok dengan &ldquo;' + esc(raw) + '&rdquo;.</p>';
       return;
     }
     list.innerHTML = items.map(it => {
@@ -551,6 +586,7 @@
             <strong>${esc(it.title)}</strong>
             <div class="item-meta">
               <span class="badge">${tag}</span>
+              ${it.subject ? `<span>${esc(it.subject)}</span>` : ''}
               ${it.author ? `<span>Oleh: ${esc(it.author)}</span>` : ''}
               <a href="${esc(it.fileUrl)}" target="_blank" style="color: var(--link);">Buka File &nearr;</a>
             </div>
@@ -563,6 +599,11 @@
       `;
     }).join('');
   }
+
+  document.getElementById('itemSearch').addEventListener('input', renderItems);
+  document.getElementById('itemSearch').addEventListener('keydown', e => {
+    if (e.key === 'Escape') { e.target.value = ''; renderItems(); }
+  });
 
   window.delItem = async id => {
     if (!confirm('Hapus materi ini beserta berkas yang diunggah?')) return;

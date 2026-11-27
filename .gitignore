@@ -17,3 +17,4 @@ public/uploads/
 *.blg
 *.bcf
 *.run.xml
+tools/index.backup.html
